@@ -140,7 +140,7 @@
   .expand-btn:hover { text-decoration: underline; }
   .hidden { display: none; }
   .filter-bar {
-    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
   }
   .filter-btn {
     padding: 6px 14px; font-size: 12px; font-weight: 500;
@@ -150,6 +150,24 @@
   }
   .filter-btn:hover { border-color: var(--accent); color: var(--text); }
   .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .collapse-all-btn {
+    margin-left: auto; padding: 6px 14px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface2); color: var(--text-dim); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .collapse-all-btn:hover { border-color: var(--accent); color: var(--text); }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer; user-select: none;
+  }
+  .section-header:hover { opacity: 0.85; }
+  .section-chevron {
+    font-size: 14px; color: var(--text-dim); transition: transform 0.2s;
+    margin-left: 8px; display: inline-block;
+  }
+  .section-chevron.collapsed { transform: rotate(-90deg); }
+  .section-group.collapsed table { display: none; }
 </style>
 </head>
 <body>
@@ -169,38 +187,23 @@
 <!-- ==================== CLOUD DLP ==================== -->
 <div id="tab-cloud" class="tab-content active">
 
-  <div class="summary-bar">
-    <div class="summary-card"><div class="num accent">15</div><div class="lbl">Total Initiatives</div></div>
-    <div class="summary-card"><div class="num green">7</div><div class="lbl">Completed</div></div>
-    <div class="summary-card"><div class="num yellow">4</div><div class="lbl">In Review</div></div>
-    <div class="summary-card"><div class="num orange">3</div><div class="lbl">In Progress</div></div>
-    <div class="summary-card"><div class="num purple">1</div><div class="lbl">Deferred to PI 2026.2</div></div>
-  </div>
-
-  <div class="progress-bar-container">
+  <div class="summary-bar" id="cloud-summary"></div>
+  <div class="progress-bar-container" id="cloud-progress">
     <div class="title">Overall Cloud DLP Completion</div>
-    <div class="progress-bar-outer">
-      <div class="progress-bar-seg done" style="width:46.7%">47%</div>
-      <div class="progress-bar-seg review" style="width:26.7%">27%</div>
-      <div class="progress-bar-seg progress" style="width:20%">20%</div>
-      <div class="progress-bar-seg todo" style="width:6.6%">7%</div>
-    </div>
-    <div class="progress-legend">
-      <span class="legend-done">Done (7)</span>
-      <span class="legend-review">In Review (4)</span>
-      <span class="legend-progress">In Progress (3)</span>
-      <span class="legend-todo">Deferred (1)</span>
-    </div>
+    <div class="progress-bar-outer" id="cloud-bar"></div>
+    <div class="progress-legend" id="cloud-legend"></div>
   </div>
 
   <div class="filter-bar">
     <button class="filter-btn active" onclick="filterCloud('all')">All</button>
     <button class="filter-btn" onclick="filterCloud('incomplete')">Incomplete Only</button>
     <button class="filter-btn" onclick="filterCloud('done')">Done Only</button>
+    <button class="collapse-all-btn" onclick="toggleAllSections('tab-cloud')">Collapse All</button>
   </div>
 
   <!-- Cloud DLP Enterprise Readiness -->
-  <div class="section-title">Cloud DLP Enterprise Readiness</div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Cloud DLP Enterprise Readiness <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -216,9 +219,11 @@
       <td class="note">Not started &mdash; moved to next PI</td>
     </tr>
   </table>
+  </div>
 
   <!-- Cloud DLP with DSE Agent -->
-  <div class="section-title">Cloud DLP with DSE Agent <span class="team-badge">Theme: DSA-618</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Cloud DLP with DSE Agent <span class="team-badge">Theme: DSA-618</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -288,9 +293,11 @@
       <td>Bar-Nachum, Nir</td>
     </tr>
   </table>
+  </div>
 
   <!-- Signal 360 (DPS) -->
-  <div class="section-title">Signal 360 (DPS Analytics)</div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Signal 360 (DPS Analytics) <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -324,9 +331,11 @@
       <td>villa, sebastian</td>
     </tr>
   </table>
+  </div>
 
   <!-- CISO Dashboard (Cloud) -->
-  <div class="section-title">CISO Dashboard (Cloud / SWG Integration)</div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">CISO Dashboard (Cloud / SWG Integration) <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -354,9 +363,11 @@
       <td>Unassigned</td>
     </tr>
   </table>
+  </div>
 
   <!-- False Positives -->
-  <div class="section-title">False Positives Reduction</div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">False Positives Reduction <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -378,43 +389,29 @@
       <td>Binder, Michal</td>
     </tr>
   </table>
+  </div>
 </div>
 
 <!-- ==================== DLP ON-PREM ==================== -->
 <div id="tab-onprem" class="tab-content">
 
-  <div class="summary-bar">
-    <div class="summary-card"><div class="num accent">29</div><div class="lbl">Total Initiatives</div></div>
-    <div class="summary-card"><div class="num green">14</div><div class="lbl">Completed</div></div>
-    <div class="summary-card"><div class="num yellow">6</div><div class="lbl">In Review</div></div>
-    <div class="summary-card"><div class="num orange">7</div><div class="lbl">In Progress</div></div>
-    <div class="summary-card"><div class="num red">2</div><div class="lbl">Dropped / Blocked</div></div>
-  </div>
-
-  <div class="progress-bar-container">
+  <div class="summary-bar" id="onprem-summary"></div>
+  <div class="progress-bar-container" id="onprem-progress">
     <div class="title">Overall DLP On-Prem Completion</div>
-    <div class="progress-bar-outer">
-      <div class="progress-bar-seg done" style="width:48.3%">48%</div>
-      <div class="progress-bar-seg review" style="width:20.7%">21%</div>
-      <div class="progress-bar-seg progress" style="width:24.1%">24%</div>
-      <div class="progress-bar-seg todo" style="width:6.9%">7%</div>
-    </div>
-    <div class="progress-legend">
-      <span class="legend-done">Done (14)</span>
-      <span class="legend-review">In Review (6)</span>
-      <span class="legend-progress">In Progress (7)</span>
-      <span class="legend-todo">Dropped/Blocked (2)</span>
-    </div>
+    <div class="progress-bar-outer" id="onprem-bar"></div>
+    <div class="progress-legend" id="onprem-legend"></div>
   </div>
 
   <div class="filter-bar">
     <button class="filter-btn active" onclick="filterOnprem('all')">All</button>
     <button class="filter-btn" onclick="filterOnprem('incomplete')">Incomplete Only</button>
     <button class="filter-btn" onclick="filterOnprem('done')">Done Only</button>
+    <button class="collapse-all-btn" onclick="toggleAllSections('tab-onprem')">Collapse All</button>
   </div>
 
   <!-- Saar/Gold - FSM Infra -->
-  <div class="section-title">CISO Dashboard <span class="team-badge">Saar / Gold (FSM Infra)</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">CISO Dashboard <span class="team-badge">Saar / Gold (FSM Infra)</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -436,8 +433,10 @@
       <td>Detkov, Vadim</td>
     </tr>
   </table>
+  </div>
 
-  <div class="section-title">Signal 360 <span class="team-badge">Saar / Gold (FSM Infra)</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Signal 360 <span class="team-badge">Saar / Gold (FSM Infra)</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -465,8 +464,10 @@
       <td>Detkov, Vadim</td>
     </tr>
   </table>
+  </div>
 
-  <div class="section-title">Kerberos & Java 17 <span class="team-badge">Saar / Gold (FSM Infra)</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Kerberos & Java 17 <span class="team-badge">Saar / Gold (FSM Infra)</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -512,9 +513,11 @@
       <td>Aroesti, Mor</td>
     </tr>
   </table>
+  </div>
 
   <!-- Costa/Platinum - FSM -->
-  <div class="section-title">Policy Export & Tech Support Reduction <span class="team-badge">Costa / Platinum (FSM)</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Policy Export & Tech Support Reduction <span class="team-badge">Costa / Platinum (FSM)</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -542,8 +545,10 @@
       <td>Osadchy, Victor</td>
     </tr>
   </table>
+  </div>
 
-  <div class="section-title">High Availability & SVM Fixes <span class="team-badge">Costa / Platinum (FSM)</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">High Availability & SVM Fixes <span class="team-badge">Costa / Platinum (FSM)</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -571,9 +576,11 @@
       <td>&mdash;</td>
     </tr>
   </table>
+  </div>
 
   <!-- Sagy/Cobalt & Onyx - Engine -->
-  <div class="section-title">Engine: Security & Customer Requests <span class="team-badge">Sagy / Cobalt & Onyx</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Engine: Security & Customer Requests <span class="team-badge">Sagy / Cobalt & Onyx</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -643,8 +650,10 @@
       <td>Kumar, Mantosh</td>
     </tr>
   </table>
+  </div>
 
-  <div class="section-title">Engine: Cloud DLP & F1E Support <span class="team-badge">Sagy / Cobalt & Onyx</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Engine: Cloud DLP & F1E Support <span class="team-badge">Sagy / Cobalt & Onyx</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-incomplete">
@@ -738,9 +747,11 @@
       <td class="note">Confirmed not in this PI &mdash; depends on KV upgrade</td>
     </tr>
   </table>
+  </div>
 
   <!-- Itzhak/Hydrogen & Titanium - Classification -->
-  <div class="section-title">Classification: Tech Debt & Upgrades <span class="team-badge">Itzhak / Hydrogen & Titanium</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Classification: Tech Debt & Upgrades <span class="team-badge">Itzhak / Hydrogen & Titanium</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -798,8 +809,10 @@
       <td class="note">Blocked &mdash; dependent on concurrent work (ICU library has higher priority)</td>
     </tr>
   </table>
+  </div>
 
-  <div class="section-title">Classification: AI & Innovation <span class="team-badge">Itzhak / Hydrogen & Titanium</span></div>
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Classification: AI & Innovation <span class="team-badge">Itzhak / Hydrogen & Titanium</span> <span class="section-chevron">&#9660;</span></div></div>
   <table>
     <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
     <tr class="row-done">
@@ -821,6 +834,7 @@
       <td class="note">Pending POC &mdash; unknown work scope</td>
     </tr>
   </table>
+  </div>
 </div>
 
 <script>
@@ -831,29 +845,99 @@ function switchTab(tab) {
   document.querySelector('.tab[onclick*="' + tab + '"]').classList.add('active');
 }
 
-function filterCloud(mode) {
-  applyFilter('tab-cloud', mode);
-}
-
-function filterOnprem(mode) {
-  applyFilter('tab-onprem', mode);
-}
+function filterCloud(mode) { applyFilter('tab-cloud', mode); }
+function filterOnprem(mode) { applyFilter('tab-onprem', mode); }
 
 function applyFilter(tabId, mode) {
   const tab = document.getElementById(tabId);
   tab.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-
   tab.querySelectorAll('tr.row-done, tr.row-incomplete').forEach(row => {
-    if (mode === 'all') {
-      row.style.display = '';
-    } else if (mode === 'done') {
-      row.style.display = row.classList.contains('row-done') ? '' : 'none';
-    } else if (mode === 'incomplete') {
-      row.style.display = row.classList.contains('row-incomplete') ? '' : 'none';
-    }
+    if (mode === 'all') row.style.display = '';
+    else if (mode === 'done') row.style.display = row.classList.contains('row-done') ? '' : 'none';
+    else if (mode === 'incomplete') row.style.display = row.classList.contains('row-incomplete') ? '' : 'none';
   });
 }
+
+/* --- Collapse / Expand --- */
+function toggleSection(header) {
+  const group = header.closest('.section-group');
+  group.classList.toggle('collapsed');
+  const chevron = header.querySelector('.section-chevron');
+  chevron.classList.toggle('collapsed');
+}
+
+function toggleAllSections(tabId) {
+  const tab = document.getElementById(tabId);
+  const groups = tab.querySelectorAll('.section-group');
+  const btn = tab.querySelector('.collapse-all-btn');
+  const allCollapsed = Array.from(groups).every(g => g.classList.contains('collapsed'));
+  groups.forEach(g => {
+    if (allCollapsed) {
+      g.classList.remove('collapsed');
+      g.querySelector('.section-chevron').classList.remove('collapsed');
+    } else {
+      g.classList.add('collapsed');
+      g.querySelector('.section-chevron').classList.add('collapsed');
+    }
+  });
+  btn.textContent = allCollapsed ? 'Collapse All' : 'Expand All';
+}
+
+/* --- Dynamic Counts --- */
+function countInitiatives(tabId) {
+  const tab = document.getElementById(tabId);
+  // Only count non-blocker initiative rows (rows with row-done or row-incomplete that aren't blocker-row)
+  const allRows = tab.querySelectorAll('tr.row-done, tr.row-incomplete');
+  let done = 0, review = 0, progress = 0, dropped = 0;
+  allRows.forEach(row => {
+    if (row.classList.contains('blocker-row')) return; // skip blockers
+    const badge = row.querySelector('.status-badge');
+    if (!badge) return;
+    const text = badge.textContent.trim().toUpperCase();
+    if (text.includes('DONE')) done++;
+    else if (text.includes('REVIEW') || text.includes('READY')) review++;
+    else if (text.includes('PROGRESS') || text.includes('REFINEMENT')) progress++;
+    else if (text.includes('DROPPED') || text.includes('BLOCKED') || text.includes('DEFERRED') || text === 'OPEN') dropped++;
+  });
+  const total = done + review + progress + dropped;
+  return { total, done, review, progress, dropped };
+}
+
+function renderSummary(prefix, counts, droppedLabel) {
+  const summaryEl = document.getElementById(prefix + '-summary');
+  summaryEl.innerHTML =
+    '<div class="summary-card"><div class="num accent">' + counts.total + '</div><div class="lbl">Total Initiatives</div></div>' +
+    '<div class="summary-card"><div class="num green">' + counts.done + '</div><div class="lbl">Completed</div></div>' +
+    '<div class="summary-card"><div class="num yellow">' + counts.review + '</div><div class="lbl">In Review</div></div>' +
+    '<div class="summary-card"><div class="num orange">' + counts.progress + '</div><div class="lbl">In Progress</div></div>' +
+    '<div class="summary-card"><div class="num red">' + counts.dropped + '</div><div class="lbl">' + droppedLabel + '</div></div>';
+
+  const barEl = document.getElementById(prefix + '-bar');
+  const t = counts.total || 1;
+  const pDone = ((counts.done / t) * 100).toFixed(1);
+  const pReview = ((counts.review / t) * 100).toFixed(1);
+  const pProgress = ((counts.progress / t) * 100).toFixed(1);
+  const pDropped = ((counts.dropped / t) * 100).toFixed(1);
+  barEl.innerHTML =
+    (counts.done ? '<div class="progress-bar-seg done" style="width:' + pDone + '%">' + Math.round(pDone) + '%</div>' : '') +
+    (counts.review ? '<div class="progress-bar-seg review" style="width:' + pReview + '%">' + Math.round(pReview) + '%</div>' : '') +
+    (counts.progress ? '<div class="progress-bar-seg progress" style="width:' + pProgress + '%">' + Math.round(pProgress) + '%</div>' : '') +
+    (counts.dropped ? '<div class="progress-bar-seg todo" style="width:' + pDropped + '%">' + Math.round(pDropped) + '%</div>' : '');
+
+  const legendEl = document.getElementById(prefix + '-legend');
+  legendEl.innerHTML =
+    '<span class="legend-done">Done (' + counts.done + ')</span>' +
+    '<span class="legend-review">In Review (' + counts.review + ')</span>' +
+    '<span class="legend-progress">In Progress (' + counts.progress + ')</span>' +
+    '<span class="legend-todo">' + droppedLabel + ' (' + counts.dropped + ')</span>';
+}
+
+// Compute and render on load
+const cloudCounts = countInitiatives('tab-cloud');
+renderSummary('cloud', cloudCounts, 'Deferred');
+const onpremCounts = countInitiatives('tab-onprem');
+renderSummary('onprem', onpremCounts, 'Dropped / Blocked');
 </script>
 </body>
 </html>
