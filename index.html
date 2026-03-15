@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>On-Prem Scrum Teams — Stalled Items Dashboard</title>
+<title>DLP Dashboards</title>
 <style>
   :root {
     --bg: #0f1117;
@@ -13,553 +13,96 @@
     --text: #e1e4ed;
     --text-dim: #8b90a0;
     --accent: #6c8cff;
-    --red: #ff6b6b;
-    --orange: #ffa64d;
-    --yellow: #ffd93d;
-    --green: #51cf66;
-    --purple: #b197fc;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: var(--bg);
     color: var(--text);
-    padding: 24px;
-    min-height: 100vh;
-  }
-  .header {
+    height: 100vh;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    overflow: hidden;
   }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-  }
-  .header h1 span { color: var(--text-dim); font-weight: 400; }
-  .controls {
+  .top-nav {
     display: flex;
-    gap: 12px;
     align-items: center;
-    flex-wrap: wrap;
+    gap: 0;
+    padding: 0 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
   }
-  .controls label {
-    font-size: 13px;
-    color: var(--text-dim);
-  }
-  .controls input[type=range] {
-    width: 140px;
-    accent-color: var(--accent);
-    cursor: pointer;
-  }
-  .threshold-val {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--accent);
-    min-width: 56px;
-  }
-  .controls select {
-    background: var(--surface2);
+  .site-title {
+    font-size: 15px;
+    font-weight: 700;
     color: var(--text);
-    border: 1px solid var(--border);
-    padding: 6px 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-  }
-
-  /* Summary cards */
-  .summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    margin-bottom: 24px;
-  }
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    text-align: center;
-  }
-  .stat-card .num {
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.1;
-  }
-  .stat-card .label {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-top: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  /* Team sections */
-  .team-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .team-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s;
-  }
-  .team-header:hover { background: var(--surface2); }
-  .team-header h2 {
-    font-size: 16px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .team-header .arrow {
-    font-size: 12px;
-    transition: transform 0.2s;
-    color: var(--text-dim);
-  }
-  .team-header.collapsed .arrow { transform: rotate(-90deg); }
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 700;
-  }
-  .badge-red { background: rgba(255,107,107,0.15); color: var(--red); }
-  .badge-orange { background: rgba(255,166,77,0.15); color: var(--orange); }
-  .badge-yellow { background: rgba(255,217,61,0.15); color: var(--yellow); }
-  .badge-green { background: rgba(81,207,102,0.15); color: var(--green); }
-  .team-stats {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-  }
-  .team-stats .mini-stat {
-    font-size: 12px;
-    color: var(--text-dim);
-  }
-  .team-stats .mini-stat strong { color: var(--text); }
-
-  /* Issue table */
-  .team-body { display: block; }
-  .team-body.hidden { display: none; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  thead th {
-    background: var(--surface2);
-    padding: 10px 14px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    cursor: pointer;
+    padding: 14px 24px 14px 0;
+    margin-right: 8px;
+    border-right: 1px solid var(--border);
+    letter-spacing: -0.3px;
     white-space: nowrap;
-    position: relative;
   }
-  thead th:hover { color: var(--text); }
-  thead th .sort-arrow { margin-left: 4px; font-size: 10px; }
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background 0.1s;
-  }
-  tbody tr:hover { background: rgba(108,140,255,0.04); }
-  tbody tr:last-child { border-bottom: none; }
-  td {
-    padding: 10px 14px;
-    vertical-align: middle;
-  }
-  td a {
-    color: var(--accent);
-    text-decoration: none;
+  .top-tab {
+    padding: 14px 24px;
+    cursor: pointer;
+    font-size: 14px;
     font-weight: 500;
-  }
-  td a:hover { text-decoration: underline; }
-  .summary-cell {
-    max-width: 360px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .days-cell {
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-  }
-  .severity-critical { color: var(--red); }
-  .severity-high { color: var(--orange); }
-  .severity-medium { color: var(--yellow); }
-  .severity-low { color: var(--green); }
-
-  .status-pill {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
+    color: var(--text-dim);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
     white-space: nowrap;
   }
-  .status-inprogress { background: rgba(108,140,255,0.15); color: var(--accent); }
-  .status-review { background: rgba(177,151,252,0.15); color: var(--purple); }
-  .status-other { background: rgba(139,144,160,0.15); color: var(--text-dim); }
-
-  .priority-pill {
-    font-size: 11px;
-    font-weight: 600;
+  .top-tab:hover { color: var(--text); }
+  .top-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
   }
-  .pri-showstopper, .pri-critical { color: var(--red); }
-  .pri-major { color: var(--orange); }
-  .pri-minor { color: var(--yellow); }
-  .pri-trivial { color: var(--text-dim); }
-
-  .empty-state {
-    padding: 40px;
-    text-align: center;
-    color: var(--text-dim);
-    font-size: 14px;
-  }
-
-  /* Bar chart */
-  .chart-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  @media (max-width: 900px) { .chart-row { grid-template-columns: 1fr; } }
-  .chart-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-  }
-  .chart-card h3 {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: var(--text-dim);
-  }
-  .bar-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-  .bar-label {
-    font-size: 12px;
-    min-width: 110px;
-    text-align: right;
-    color: var(--text-dim);
-  }
-  .bar-track {
+  .frame-container {
     flex: 1;
-    height: 22px;
-    background: var(--surface2);
-    border-radius: 4px;
-    overflow: hidden;
     position: relative;
+    overflow: hidden;
   }
-  .bar-fill {
+  .frame-container iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
     height: 100%;
-    border-radius: 4px;
-    transition: width 0.4s ease;
-    display: flex;
-    align-items: center;
-    padding-left: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #fff;
-    min-width: 28px;
+    border: none;
+    display: none;
   }
-  .bar-red { background: var(--red); }
-  .bar-orange { background: var(--orange); }
-  .bar-yellow { background: var(--yellow); }
-  .bar-green { background: var(--green); }
-  .bar-accent { background: var(--accent); }
-
-  .timestamp {
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-dim);
-    margin-top: 16px;
-    padding-bottom: 8px;
+  .frame-container iframe.active {
+    display: block;
   }
-
-  /* Assignee heatmap */
-  .heatmap-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
-  }
-  .heatmap-cell {
-    background: var(--surface2);
-    border-radius: 8px;
-    padding: 10px 12px;
-    text-align: center;
-  }
-  .heatmap-cell .name { font-size: 12px; color: var(--text-dim); margin-bottom: 4px; }
-  .heatmap-cell .count { font-size: 20px; font-weight: 700; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <h1>On-Prem Stalled Items <span>/ Scrum Teams Dashboard</span></h1>
-    <p style="font-size:13px;color:var(--text-dim);margin-top:4px;">In-progress items exceeding the staleness threshold across DLP, DSA, DPS, CASB</p>
-  </div>
-  <div class="controls">
-    <label>Stale threshold:</label>
-    <input type="range" id="thresholdSlider" min="3" max="90" value="14">
-    <span class="threshold-val" id="thresholdLabel">14 days</span>
-    <select id="projectFilter">
-      <option value="all">All Projects</option>
-      <option value="DLP">DLP</option>
-      <option value="DSA">DSA</option>
-      <option value="DPS">DPS</option>
-      <option value="CASB">CASB</option>
-    </select>
-    <select id="priorityFilter">
-      <option value="all">All Priorities</option>
-      <option value="Showstopper">Showstopper</option>
-      <option value="Critical">Critical</option>
-      <option value="Major">Major</option>
-      <option value="Minor">Minor</option>
-    </select>
-  </div>
+<nav class="top-nav">
+  <div class="site-title">DLP Dashboards</div>
+  <div class="top-tab active" onclick="switchProject('stalled')">Stalled Items</div>
+  <div class="top-tab" onclick="switchProject('pi')">PI 2026.1 Completion</div>
+</nav>
+
+<div class="frame-container">
+  <iframe id="frame-stalled" class="active" src="stalled.html"></iframe>
+  <iframe id="frame-pi" src="pi-dashboard.html"></iframe>
 </div>
 
-<div class="summary" id="summaryCards"></div>
-<div class="chart-row" id="charts"></div>
-<div id="teamSections"></div>
-<div class="timestamp" id="timestamp"></div>
-
 <script>
-const ISSUES = [{"key": "CASB-21071", "url": "https://forcepoint.atlassian.net/browse/CASB-21071", "summary": "FSM | Redundant type of Mitigation \"Unshare Internal\" exists", "project": "CASB", "projectName": "CASB", "assignee": "Osadchy, Victor", "status": "READY TO IMPLEMENT", "type": "Bug", "priority": "Minor", "created": "2021-10-06", "updated": "2025-04-27", "team": "Saar Srur"}, {"key": "DPS-5079", "url": "https://forcepoint.atlassian.net/browse/DPS-5079", "summary": "fingerprinter: unstructured: fetcher with pagination testing - 2/2", "project": "DPS", "projectName": "Data Protection Service", "assignee": "Kuznits, Shemer", "status": "In Progress", "type": "Task", "priority": "Major", "created": "2026-02-17", "updated": "2026-03-12", "team": "Ron Direct"}, {"key": "DPS-5056", "url": "https://forcepoint.atlassian.net/browse/DPS-5056", "summary": "Fingerprinter-DSPM integration", "project": "DPS", "projectName": "Data Protection Service", "assignee": "Kuznits, Shemer", "status": "In Progress", "type": "Epic", "priority": "Major", "created": "2026-02-11", "updated": "2026-03-02", "team": "Ron Direct"}, {"key": "DPS-4938", "url": "https://forcepoint.atlassian.net/browse/DPS-4938", "summary": "Fingerprinter Service | Structured fingerprinting: DLL integration", "project": "DPS", "projectName": "Data Protection Service", "assignee": "Kuznits, Shemer", "status": "In Progress", "type": "Epic", "priority": "Major", "created": "2025-06-18", "updated": "2026-02-22", "team": "Ron Direct"}, {"key": "DPS-4931", "url": "https://forcepoint.atlassian.net/browse/DPS-4931", "summary": "Fingerprinter Service | structured prometheus counters", "project": "DPS", "projectName": "Data Protection Service", "assignee": "Kuznits, Shemer", "status": "READY TO IMPLEMENT", "type": "Story", "priority": "Major", "created": "2025-11-17", "updated": "2026-02-19", "team": "Ron Direct"}, {"key": "DPS-3913", "url": "https://forcepoint.atlassian.net/browse/DPS-3913", "summary": "Regression on forensics DPS FSM mode", "project": "DPS", "projectName": "Data Protection Service", "assignee": "Geva, Lucy", "status": "READY TO IMPLEMENT", "type": "Task", "priority": "Major", "created": "2024-11-26", "updated": "2025-05-27", "team": "Yoav Epelman"}, {"key": "DSA-832", "url": "https://forcepoint.atlassian.net/browse/DSA-832", "summary": "DSE Agent | EPClassifier | DLP Mode Switching Support (migration tooling)", "project": "DSA", "projectName": "Data Security ART", "assignee": "Lerman, Yan", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-12-15", "updated": "2026-03-12", "team": "Ron Direct"}, {"key": "DSA-607", "url": "https://forcepoint.atlassian.net/browse/DSA-607", "summary": "Fix Installation in Kerberos configured environment", "project": "DSA", "projectName": "Data Security ART", "assignee": "Aroesti, Mor", "status": "IN REFINEMENT", "type": "Initiative", "priority": "Major", "created": "2025-08-19", "updated": "2026-03-12", "team": "Saar Srur"}, {"key": "DSA-647", "url": "https://forcepoint.atlassian.net/browse/DSA-647", "summary": "Upgrade the ICU and Boost library", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kekatpure, Vineet", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-09-04", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DSA-552", "url": "https://forcepoint.atlassian.net/browse/DSA-552", "summary": "PM: Detect MIP labels over emails (RPMSG messages)", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kekatpure, Vineet", "status": "In Review", "type": "Initiative", "priority": "Critical", "created": "2025-06-24", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DSA-890", "url": "https://forcepoint.atlassian.net/browse/DSA-890", "summary": "Fingerprinter Service | Structured | Engine support", "project": "DSA", "projectName": "Data Security ART", "assignee": "Lerman, Yan", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2026-01-05", "updated": "2026-03-12", "team": "Ron Direct"}, {"key": "DSA-444", "url": "https://forcepoint.atlassian.net/browse/DSA-444", "summary": "Cloud FPR Service Support (unstructured prerequisite) | Engine Support", "project": "DSA", "projectName": "Data Security ART", "assignee": "Lerman, Yan", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-06-15", "updated": "2026-03-12", "team": "Ron Direct"}, {"key": "DSA-797", "url": "https://forcepoint.atlassian.net/browse/DSA-797", "summary": "Automatic ca.cert replacement of certificate chain", "project": "DSA", "projectName": "Data Security ART", "assignee": "Benarosh, Tali", "status": "IN REFINEMENT", "type": "Initiative", "priority": "Major", "created": "2025-12-10", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DSA-974", "url": "https://forcepoint.atlassian.net/browse/DSA-974", "summary": "CISO Dashboard | Support backport to 10.3.3", "project": "DSA", "projectName": "Data Security ART", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2026-03-02", "updated": "2026-03-10", "team": "Saar Srur"}, {"key": "DSA-329", "url": "https://forcepoint.atlassian.net/browse/DSA-329", "summary": "DLP Manager: Java 17 Upgrade - be ready merged to 10.5 master branch", "project": "DSA", "projectName": "Data Security ART", "assignee": "Leibowitz, Esty", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-03-19", "updated": "2026-03-09", "team": "Saar Srur"}, {"key": "DSA-767", "url": "https://forcepoint.atlassian.net/browse/DSA-767", "summary": "[TS ask] Improve DLP upgrade checks(backup, policy version and deployment)", "project": "DSA", "projectName": "Data Security ART", "assignee": "Osadchy, Victor", "status": "In Review", "type": "Initiative", "priority": "Major", "created": "2025-11-18", "updated": "2026-03-09", "team": "Saar Srur"}, {"key": "DSA-801", "url": "https://forcepoint.atlassian.net/browse/DSA-801", "summary": "Signal 360 | support backport to 10.4.1", "project": "DSA", "projectName": "Data Security ART", "assignee": "Detkov, Vadim", "status": "In Review", "type": "Initiative", "priority": "Major", "created": "2025-12-10", "updated": "2026-03-09", "team": "Saar Srur"}, {"key": "DSA-973", "url": "https://forcepoint.atlassian.net/browse/DSA-973", "summary": "Signal 360 | support backport to 10.3.3", "project": "DSA", "projectName": "Data Security ART", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2026-03-02", "updated": "2026-03-08", "team": "Saar Srur"}, {"key": "DSA-800", "url": "https://forcepoint.atlassian.net/browse/DSA-800", "summary": "CISO Dashboard | Support backport to 10.4.1", "project": "DSA", "projectName": "Data Security ART", "assignee": "Detkov, Vadim", "status": "In Review", "type": "Initiative", "priority": "Major", "created": "2025-12-10", "updated": "2026-03-05", "team": "Saar Srur"}, {"key": "DSA-947", "url": "https://forcepoint.atlassian.net/browse/DSA-947", "summary": "Classification | Technical Debt", "project": "DSA", "projectName": "Data Security ART", "assignee": "Simhi, Ohad", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2026-02-08", "updated": "2026-02-25", "team": "Ron Direct"}, {"key": "DSA-442", "url": "https://forcepoint.atlassian.net/browse/DSA-442", "summary": "Fingerprinter Service | Structured", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kuznits, Shemer", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-06-15", "updated": "2026-02-24", "team": "Ron Direct"}, {"key": "DSA-724", "url": "https://forcepoint.atlassian.net/browse/DSA-724", "summary": "DLP OnPrem Signal 360 | Daily FSM Telemetry Reporting ", "project": "DSA", "projectName": "Data Security ART", "assignee": "Detkov, Vadim", "status": "In Review", "type": "Initiative", "priority": "Critical", "created": "2025-09-29", "updated": "2026-02-24", "team": "Saar Srur"}, {"key": "DSA-951", "url": "https://forcepoint.atlassian.net/browse/DSA-951", "summary": "Cyber Bullying Gen Z", "project": "DSA", "projectName": "Data Security ART", "assignee": "Simhi, Ohad", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2026-02-10", "updated": "2026-02-23", "team": "Ron Direct"}, {"key": "DSA-754", "url": "https://forcepoint.atlassian.net/browse/DSA-754", "summary": "Cobalt Vulnerabilities - 2026.1", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-11-10", "updated": "2026-02-19", "team": "Itzhak Hasson"}, {"key": "DSA-952", "url": "https://forcepoint.atlassian.net/browse/DSA-952", "summary": "Classification | Customer Support (Unplanned) 2026.1", "project": "DSA", "projectName": "Data Security ART", "assignee": "Simhi, Ohad", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2026-02-10", "updated": "2026-02-17", "team": "Ron Direct"}, {"key": "DSA-113", "url": "https://forcepoint.atlassian.net/browse/DSA-113", "summary": "[Capgemini] Script Classifiers  - description improvement (key and value) - Phas", "project": "DSA", "projectName": "Data Security ART", "assignee": "Simhi, Ohad", "status": "In Progress", "type": "Initiative", "priority": "Trivial", "created": "2024-12-01", "updated": "2026-02-17", "team": "Ron Direct"}, {"key": "DSA-828", "url": "https://forcepoint.atlassian.net/browse/DSA-828", "summary": "Classification | Sustaining Work PI 2026.1 ", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kekatpure, Vineet", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-12-15", "updated": "2026-02-17", "team": "Itzhak Hasson"}, {"key": "DSA-792", "url": "https://forcepoint.atlassian.net/browse/DSA-792", "summary": "Classifier | Support Google labels for CASB channel passed as additional context", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Initiative", "priority": "Critical", "created": "2025-12-09", "updated": "2026-02-17", "team": "Itzhak Hasson"}, {"key": "DSA-577", "url": "https://forcepoint.atlassian.net/browse/DSA-577", "summary": "Enable Canonization of Arabic Digits in DLP Policies", "project": "DSA", "projectName": "Data Security ART", "assignee": "Benarosh, Tali", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-07-29", "updated": "2026-02-17", "team": "Itzhak Hasson"}, {"key": "DSA-841", "url": "https://forcepoint.atlassian.net/browse/DSA-841", "summary": "DLP Libcurl < 8.14.1 [CVE-2024-7264] - SVM", "project": "DSA", "projectName": "Data Security ART", "assignee": "Ayger, Asi", "status": "In Progress", "type": "Initiative", "priority": "Critical", "created": "2025-12-16", "updated": "2026-02-17", "team": "Itzhak Hasson"}, {"key": "DSA-457", "url": "https://forcepoint.atlassian.net/browse/DSA-457", "summary": "Policies code migration to Git", "project": "DSA", "projectName": "Data Security ART", "assignee": "Vaisburd, Boris", "status": "READY TO IMPLEMENT", "type": "Initiative", "priority": "Major", "created": "2025-06-15", "updated": "2026-02-08", "team": "Itzhak Hasson"}, {"key": "DSA-893", "url": "https://forcepoint.atlassian.net/browse/DSA-893", "summary": "Demonstrate fixed installation in Kerboros configured environment", "project": "DSA", "projectName": "Data Security ART", "assignee": "Aroesti, Mor", "status": "IN REFINEMENT", "type": "PI Objective", "priority": "Major", "created": "2026-01-06", "updated": "2026-02-05", "team": "Saar Srur"}, {"key": "DSA-934", "url": "https://forcepoint.atlassian.net/browse/DSA-934", "summary": "Complete KeyView Upgrade", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "PI Objective", "priority": "Major", "created": "2026-01-20", "updated": "2026-02-05", "team": "Itzhak Hasson"}, {"key": "DSA-931", "url": "https://forcepoint.atlassian.net/browse/DSA-931", "summary": "Reduce certificate renewal risk and downtime", "project": "DSA", "projectName": "Data Security ART", "assignee": "Benarosh, Tali", "status": "IN REFINEMENT", "type": "PI Objective", "priority": "Major", "created": "2026-01-20", "updated": "2026-02-05", "team": "Itzhak Hasson"}, {"key": "DSA-836", "url": "https://forcepoint.atlassian.net/browse/DSA-836", "summary": "We don't know which 3rd party libraries need upgrade during Visual Studio compil", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kekatpure, Vineet", "status": "Monitoring", "type": "Risk", "priority": "Major", "created": "2025-12-16", "updated": "2026-01-27", "team": "Itzhak Hasson"}, {"key": "DSA-889", "url": "https://forcepoint.atlassian.net/browse/DSA-889", "summary": "Blocking sensitive data written with arabic digits", "project": "DSA", "projectName": "Data Security ART", "assignee": "Benarosh, Tali", "status": "In Progress", "type": "PI Objective", "priority": "Major", "created": "2026-01-04", "updated": "2026-01-27", "team": "Itzhak Hasson"}, {"key": "DSA-888", "url": "https://forcepoint.atlassian.net/browse/DSA-888", "summary": "Upgrade all Win MIP packages to work with the latest version", "project": "DSA", "projectName": "Data Security ART", "assignee": "Ayger, Asi", "status": "In Progress", "type": "PI Objective", "priority": "Major", "created": "2026-01-04", "updated": "2026-01-20", "team": "Itzhak Hasson"}, {"key": "DSA-885", "url": "https://forcepoint.atlassian.net/browse/DSA-885", "summary": "Applying actions on MIP encrypted emails according to their labels", "project": "DSA", "projectName": "Data Security ART", "assignee": "Shoyhet, Arkady", "status": "In Progress", "type": "PI Objective", "priority": "Major", "created": "2026-01-04", "updated": "2026-01-20", "team": "Itzhak Hasson"}, {"key": "DSA-887", "url": "https://forcepoint.atlassian.net/browse/DSA-887", "summary": "Apache server running with latest Apache version, latest openssl version and lat", "project": "DSA", "projectName": "Data Security ART", "assignee": "Shoyhet, Arkady", "status": "In Progress", "type": "PI Objective", "priority": "Major", "created": "2026-01-04", "updated": "2026-01-20", "team": "Itzhak Hasson"}, {"key": "DSA-854", "url": "https://forcepoint.atlassian.net/browse/DSA-854", "summary": "ICU upgrade for Mac at risk of not finishing for PI2026.1", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kekatpure, Vineet", "status": "Mitigated", "type": "Risk", "priority": "Major", "created": "2025-12-17", "updated": "2026-01-13", "team": "Itzhak Hasson"}, {"key": "DSA-517", "url": "https://forcepoint.atlassian.net/browse/DSA-517", "summary": "Java 17 Upgrade merge may be delayed due to multiple dependencies", "project": "DSA", "projectName": "Data Security ART", "assignee": "Leibowitz, Esty", "status": "Monitoring", "type": "Risk", "priority": "Critical", "created": "2025-06-19", "updated": "2026-01-13", "team": "Saar Srur"}, {"key": "DSA-533", "url": "https://forcepoint.atlassian.net/browse/DSA-533", "summary": "[ENG] PE Build system cleanup - Ongoing", "project": "DSA", "projectName": "Data Security ART", "assignee": "Vaisburd, Boris", "status": "READY TO IMPLEMENT", "type": "Theme", "priority": "Critical", "created": "2025-06-22", "updated": "2026-01-11", "team": "Itzhak Hasson"}, {"key": "DSA-625", "url": "https://forcepoint.atlassian.net/browse/DSA-625", "summary": "[ENG] PE Build system refactor and modernization - Future", "project": "DSA", "projectName": "Data Security ART", "assignee": "Aroesti, Mor", "status": "READY TO IMPLEMENT", "type": "Initiative", "priority": "Major", "created": "2025-08-27", "updated": "2026-01-07", "team": "Saar Srur"}, {"key": "DSA-494", "url": "https://forcepoint.atlassian.net/browse/DSA-494", "summary": "Decoupling the DLP and PE involves installer changes which can bring on unpredic", "project": "DSA", "projectName": "Data Security ART", "assignee": "Kekatpure, Vineet", "status": "Monitoring", "type": "Risk", "priority": "Major", "created": "2025-06-17", "updated": "2026-01-07", "team": "Itzhak Hasson"}, {"key": "DSA-674", "url": "https://forcepoint.atlassian.net/browse/DSA-674", "summary": "Decrypt Azure RMS encrypted emails (RPMSG messages) on windows systems", "project": "DSA", "projectName": "Data Security ART", "assignee": "Shoyhet, Arkady", "status": "IN REFINEMENT", "type": "Initiative", "priority": "Critical", "created": "2025-09-10", "updated": "2025-12-30", "team": "Itzhak Hasson"}, {"key": "DSA-87", "url": "https://forcepoint.atlassian.net/browse/DSA-87", "summary": "Migrate build machine to AWS", "project": "DSA", "projectName": "Data Security ART", "assignee": "Vaisburd, Boris", "status": "IN REFINEMENT", "type": "Initiative", "priority": "Major", "created": "2024-12-24", "updated": "2025-12-14", "team": "Itzhak Hasson"}, {"key": "DLP-31220", "url": "https://forcepoint.atlassian.net/browse/DLP-31220", "summary": "MainDev -  Installer: After installer dlp \"repair\" successfully run the deploy f", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Aroesti, Mor", "status": "READY TO IMPLEMENT", "type": "Bug", "priority": "Critical", "created": "2025-08-25", "updated": "2026-03-13", "team": "Saar Srur"}, {"key": "DLP-29863", "url": "https://forcepoint.atlassian.net/browse/DLP-29863", "summary": "[StarHub] - Taiwan Machine Readable Password FP", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Simhi, Ohad", "status": "In Review", "type": "Story", "priority": "Minor", "created": "2025-05-14", "updated": "2026-03-13", "team": "Ron Direct"}, {"key": "DLP-33066", "url": "https://forcepoint.atlassian.net/browse/DLP-33066", "summary": "Add Missing Data Theft Rules to the Data Theft Policy", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Binder, Michal", "status": "In Progress", "type": "Initiative", "priority": "Major", "created": "2025-12-23", "updated": "2026-03-13", "team": "Ron Direct"}, {"key": "DLP-33801", "url": "https://forcepoint.atlassian.net/browse/DLP-33801", "summary": "Find relevant existing classifiers for Data Theft policy", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Binder, Michal", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-02-23", "updated": "2026-03-13", "team": "Ron Direct"}, {"key": "DLP-32929", "url": "https://forcepoint.atlassian.net/browse/DLP-32929", "summary": "Update libicu and boost on Main_Dev for Windows", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kekatpure, Vineet", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-12-17", "updated": "2026-03-13", "team": "Itzhak Hasson"}, {"key": "DLP-32820", "url": "https://forcepoint.atlassian.net/browse/DLP-32820", "summary": "Signal 360 support backport to 10.4.1", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Review", "type": "Epic", "priority": "Major", "created": "2025-12-16", "updated": "2026-03-12", "team": "Saar Srur"}, {"key": "DLP-33958", "url": "https://forcepoint.atlassian.net/browse/DLP-33958", "summary": "10.4 Re-post | Build solution, install, verify results", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Critical", "created": "2026-03-11", "updated": "2026-03-12", "team": "Saar Srur"}, {"key": "DLP-33826", "url": "https://forcepoint.atlassian.net/browse/DLP-33826", "summary": "10.4 Re-post | SQL timeout and SP_PA_REMOVE_DELETED_REPOSITORY_ENTRIES enhanceme", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Critical", "created": "2026-02-25", "updated": "2026-03-12", "team": "Saar Srur"}, {"key": "DLP-33755", "url": "https://forcepoint.atlassian.net/browse/DLP-33755", "summary": "[AT&T] Exceptions aren't working since upgrading to 10.4", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Ayger, Asi", "status": "In Progress", "type": "Escalation", "priority": "Critical", "created": "2026-02-16", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DLP-33904", "url": "https://forcepoint.atlassian.net/browse/DLP-33904", "summary": "[customer bug] [mBank SA] Large Files text extraction", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Bug", "priority": "Major", "created": "2026-03-05", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DLP-33899", "url": "https://forcepoint.atlassian.net/browse/DLP-33899", "summary": "Cloud FPR | Unstructured | Add FPRUtils TestFPNE LocalSync sub-command", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Geva, Lucy", "status": "READY TO TEST", "type": "Story", "priority": "Major", "created": "2026-03-05", "updated": "2026-03-12", "team": "Yoav Epelman"}, {"key": "DLP-33882", "url": "https://forcepoint.atlassian.net/browse/DLP-33882", "summary": "Support DSPM team with Classifier tuning", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-03-03", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DLP-33331", "url": "https://forcepoint.atlassian.net/browse/DLP-33331", "summary": "DLP Libcurl < 8.14.1 [CVE-2024-7264]", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Ayger, Asi", "status": "In Progress", "type": "Story", "priority": "Showstopper", "created": "2026-01-19", "updated": "2026-03-12", "team": "Itzhak Hasson"}, {"key": "DLP-33307", "url": "https://forcepoint.atlassian.net/browse/DLP-33307", "summary": "Israel ID classifier failed to block when a single letter is added to the number", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Simhi, Ohad", "status": "READY TO TEST", "type": "Bug", "priority": "Critical", "created": "2026-01-14", "updated": "2026-03-12", "team": "Ron Direct"}, {"key": "DLP-33825", "url": "https://forcepoint.atlassian.net/browse/DLP-33825", "summary": "10.4 Re-post | Scheduled reports migration enhancement", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Critical", "created": "2026-02-25", "updated": "2026-03-11", "team": "Saar Srur"}, {"key": "DLP-33577", "url": "https://forcepoint.atlassian.net/browse/DLP-33577", "summary": "Claude training 2026.PI1", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-02-01", "updated": "2026-03-11", "team": "Saar Srur"}, {"key": "DLP-32799", "url": "https://forcepoint.atlassian.net/browse/DLP-32799", "summary": "CISO Dashboard Support backport to 10.4.1", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Review", "type": "Epic", "priority": "Major", "created": "2025-12-16", "updated": "2026-03-11", "team": "Saar Srur"}, {"key": "DLP-33800", "url": "https://forcepoint.atlassian.net/browse/DLP-33800", "summary": "Email Classifier scanning content that exceeds specific fields scope", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Shoyhet, Arkady", "status": "In Progress", "type": "Bug", "priority": "Major", "created": "2026-02-23", "updated": "2026-03-10", "team": "Itzhak Hasson"}, {"key": "DLP-33824", "url": "https://forcepoint.atlassian.net/browse/DLP-33824", "summary": "10.4 Re-post | Add data cleanup queries and existing queries enhancement", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Critical", "created": "2026-02-25", "updated": "2026-03-10", "team": "Saar Srur"}, {"key": "DLP-30945", "url": "https://forcepoint.atlassian.net/browse/DLP-30945", "summary": "Reduce Policy Group xml size", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Simhi, Ohad", "status": "In Review", "type": "Story", "priority": "Major", "created": "2025-07-30", "updated": "2026-03-10", "team": "Ron Direct"}, {"key": "DLP-33176", "url": "https://forcepoint.atlassian.net/browse/DLP-33176", "summary": "False positives - PI 2026.1 - Classification", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Binder, Michal", "status": "In Review", "type": "Epic", "priority": "Major", "created": "2026-01-06", "updated": "2026-03-09", "team": "Ron Direct"}, {"key": "DLP-28695", "url": "https://forcepoint.atlassian.net/browse/DLP-28695", "summary": "Java CI | Maintain and stable the Java 'CI' env with JDK 17 (Integration Tests)", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Aroesti, Mor", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-02-16", "updated": "2026-03-09", "team": "Saar Srur"}, {"key": "DLP-1339", "url": "https://forcepoint.atlassian.net/browse/DLP-1339", "summary": "UBA : support DT by human vs. DT by malware ", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Simhi, Ohad", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2016-07-13", "updated": "2026-03-09", "team": "Ron Direct"}, {"key": "DLP-33892", "url": "https://forcepoint.atlassian.net/browse/DLP-33892", "summary": "Display confirmation message during MR installation", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Osadchy, Victor", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-03-05", "updated": "2026-03-09", "team": "Saar Srur"}, {"key": "DLP-33910", "url": "https://forcepoint.atlassian.net/browse/DLP-33910", "summary": "CISO backport 10.3.3 | UI & Backend", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-03-08", "updated": "2026-03-08", "team": "Saar Srur"}, {"key": "DLP-33911", "url": "https://forcepoint.atlassian.net/browse/DLP-33911", "summary": "Signal360 backport 10.3.3 | UI & Backend", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-03-08", "updated": "2026-03-08", "team": "Saar Srur"}, {"key": "DLP-33744", "url": "https://forcepoint.atlassian.net/browse/DLP-33744", "summary": "CISO and Signal - PROD AWS infra ", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Baharav, Bashi", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2026-02-15", "updated": "2026-03-08", "team": "Ron Direct"}, {"key": "DLP-32251", "url": "https://forcepoint.atlassian.net/browse/DLP-32251", "summary": "Batch operations\u00a0 - after changing Source for several policies, the Cloud sectio", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Osadchy, Victor", "status": "READY TO IMPLEMENT", "type": "Bug", "priority": "Major", "created": "2025-11-06", "updated": "2026-03-08", "team": "Saar Srur"}, {"key": "DLP-33907", "url": "https://forcepoint.atlassian.net/browse/DLP-33907", "summary": "Signal 360 | support backport to 10.3.3", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Epic", "priority": "Major", "created": "2026-03-08", "updated": "2026-03-08", "team": "Saar Srur"}, {"key": "DLP-33908", "url": "https://forcepoint.atlassian.net/browse/DLP-33908", "summary": "CISO Dashboard | Support backport to 10.3.3", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "In Progress", "type": "Epic", "priority": "Major", "created": "2026-03-08", "updated": "2026-03-08", "team": "Saar Srur"}, {"key": "DLP-33175", "url": "https://forcepoint.atlassian.net/browse/DLP-33175", "summary": "DLP: Apache Log4j < 2.25.3 [CVE-2025-68161]", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Leibowitz, Esty", "status": "In Progress", "type": "Bug", "priority": "Minor", "created": "2026-01-06", "updated": "2026-03-07", "team": "Saar Srur"}, {"key": "DLP-33360", "url": "https://forcepoint.atlassian.net/browse/DLP-33360", "summary": "[ENBD] Download forensics from DPS environment job are stuck", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "READY TO TEST", "type": "Bug", "priority": "Critical", "created": "2026-01-20", "updated": "2026-03-05", "team": "Saar Srur"}, {"key": "DLP-33902", "url": "https://forcepoint.atlassian.net/browse/DLP-33902", "summary": "Custom computer delete/recreate UUID issue", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Osadchy, Victor", "status": "READY TO IMPLEMENT", "type": "Bug", "priority": "Major", "created": "2026-03-05", "updated": "2026-03-05", "team": "Saar Srur"}, {"key": "DLP-30373", "url": "https://forcepoint.atlassian.net/browse/DLP-30373", "summary": "Cloud FPR | Unstructured | Separate unstructured commit and FPNE creation", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Lerman, Yan", "status": "IN REFINEMENT", "type": "Epic", "priority": "Major", "created": "2025-06-17", "updated": "2026-03-05", "team": "Ron Direct"}, {"key": "DLP-30381", "url": "https://forcepoint.atlassian.net/browse/DLP-30381", "summary": "Cloud FPR | Unstructured | Design and implement separated CommitContent and FPNE", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Lerman, Yan", "status": "READY TO TEST", "type": "Story", "priority": "Major", "created": "2025-06-17", "updated": "2026-03-05", "team": "Ron Direct"}, {"key": "DLP-31942", "url": "https://forcepoint.atlassian.net/browse/DLP-31942", "summary": "Execute test cases for KeyView 25.4 and compare results with previous version.", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Geva, Lucy", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-09-29", "updated": "2026-03-04", "team": "Yoav Epelman"}, {"key": "DLP-33079", "url": "https://forcepoint.atlassian.net/browse/DLP-33079", "summary": "Non informative error message in case of wrong password when importing policies", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Osadchy, Victor", "status": "READY TO TEST", "type": "Bug", "priority": "Minor", "created": "2025-12-24", "updated": "2026-03-04", "team": "Saar Srur"}, {"key": "DLP-33643", "url": "https://forcepoint.atlassian.net/browse/DLP-33643", "summary": "NG-F1E | Alert JsonV2 | configure and limit detected_values", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Geva, Lucy", "status": "READY TO TEST", "type": "Story", "priority": "Critical", "created": "2026-02-08", "updated": "2026-03-03", "team": "Yoav Epelman"}, {"key": "DLP-29954", "url": "https://forcepoint.atlassian.net/browse/DLP-29954", "summary": "SVM For Python Library | Make Changes in Windows Installer(Wix) for packaging Ne", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Sub-task", "priority": "Major", "created": "2025-05-21", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-29952", "url": "https://forcepoint.atlassian.net/browse/DLP-29952", "summary": "SVM For Python Library |Packaging Offline python package(.whl) files to perfrom ", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Sub-task", "priority": "Major", "created": "2025-05-21", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-29948", "url": "https://forcepoint.atlassian.net/browse/DLP-29948", "summary": "SVM For Python Library | Python3.10-venv library updates to address CVE's On Win", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-05-21", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-28827", "url": "https://forcepoint.atlassian.net/browse/DLP-28827", "summary": "SVM For Python Library | DLP: Certifi < 2024.7.4[CVE-2023-37920,CVE-2024-39689]", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Bug", "priority": "Major", "created": "2025-02-28", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-28828", "url": "https://forcepoint.atlassian.net/browse/DLP-28828", "summary": "SVM For Python Library | DLP:RCE and DOS in pypa/setuptools < 70.0.0 [CVE-2024-6", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Bug", "priority": "Major", "created": "2025-02-28", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-28830", "url": "https://forcepoint.atlassian.net/browse/DLP-28830", "summary": "SVM For Python Library | DLP:DOS in idna < 3.7[CVE-2024-3651]", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Bug", "priority": "Major", "created": "2025-02-28", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-28831", "url": "https://forcepoint.atlassian.net/browse/DLP-28831", "summary": "SVM For Python Library | DLP: urlib3 < 1.26.19[CVE-2023-43804,CVE-2024-37891,CVE", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Kumar, Mantosh", "status": "In Progress", "type": "Bug", "priority": "Critical", "created": "2025-02-28", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-33053", "url": "https://forcepoint.atlassian.net/browse/DLP-33053", "summary": "F1E-NG | EPClassifier | Implement Switch Mode Support", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Lerman, Yan", "status": "In Review", "type": "Story", "priority": "Major", "created": "2025-12-22", "updated": "2026-03-03", "team": "Ron Direct"}, {"key": "DLP-30498", "url": "https://forcepoint.atlassian.net/browse/DLP-30498", "summary": "Cloud FPR | Unstructured | Investigate hashes file size ", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Lerman, Yan", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-06-18", "updated": "2026-03-03", "team": "Ron Direct"}, {"key": "DLP-30461", "url": "https://forcepoint.atlassian.net/browse/DLP-30461", "summary": "Fingerprinter Service | Structured | DLL | Design API", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Lerman, Yan", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-06-18", "updated": "2026-03-03", "team": "Ron Direct"}, {"key": "DLP-32875", "url": "https://forcepoint.atlassian.net/browse/DLP-32875", "summary": "Understand how the process is currently carried out (with TEG)", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Benarosh, Tali", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-12-16", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-31482", "url": "https://forcepoint.atlassian.net/browse/DLP-31482", "summary": "Research for ideal method to detect Arabic credit cards", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Benarosh, Tali", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-09-08", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-31484", "url": "https://forcepoint.atlassian.net/browse/DLP-31484", "summary": "Implement Arabic credit cards detection", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Benarosh, Tali", "status": "In Progress", "type": "Story", "priority": "Major", "created": "2025-09-08", "updated": "2026-03-03", "team": "Itzhak Hasson"}, {"key": "DLP-33807", "url": "https://forcepoint.atlassian.net/browse/DLP-33807", "summary": " DSE EP| The error: ERROR Exception - BasePriorityQueue: Queue is full flood the", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Geva, Lucy", "status": "In Progress", "type": "Bug", "priority": "Major", "created": "2026-02-24", "updated": "2026-03-02", "team": "Yoav Epelman"}, {"key": "DLP-29079", "url": "https://forcepoint.atlassian.net/browse/DLP-29079", "summary": "Java 17 - CI and Automation environment", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Aroesti, Mor", "status": "In Progress", "type": "Epic", "priority": "Major", "created": "2025-03-19", "updated": "2026-03-02", "team": "Saar Srur"}, {"key": "DLP-33548", "url": "https://forcepoint.atlassian.net/browse/DLP-33548", "summary": "[10.4] DLP doesn't lunch after upgrade to FSM 10.4 due to scheduled report migra", "project": "DLP", "projectName": "Forcepoint DLP", "assignee": "Detkov, Vadim", "status": "On Hold (migrated)", "type": "IB", "priority": "Critical", "created": "2026-01-28", "updated": "2026-03-02", "team": "Saar Srur"}];
-
-const TEAMS = ['Saar Srur', 'Itzhak Hasson', 'Yoav Epelman', 'Ron Direct'];
-const TEAM_COLORS = {
-  'Saar Srur': '#6c8cff',
-  'Itzhak Hasson': '#b197fc',
-  'Yoav Epelman': '#51cf66',
-  'Ron Direct': '#ffa64d'
-};
-
-const TODAY = new Date('2026-03-15');
-
-function daysSince(dateStr) {
-  const d = new Date(dateStr);
-  return Math.floor((TODAY - d) / (1000 * 60 * 60 * 24));
+function switchProject(project) {
+  document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.frame-container iframe').forEach(f => f.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('frame-' + project).classList.add('active');
 }
 
-function staleDays(issue) {
-  return daysSince(issue.updated);
+// Support URL hash navigation
+if (window.location.hash === '#pi') {
+  switchProject('pi');
+  document.querySelectorAll('.top-tab')[1].classList.add('active');
+  document.querySelectorAll('.top-tab')[0].classList.remove('active');
 }
-
-function severityClass(days, threshold) {
-  if (days >= threshold * 3) return 'severity-critical';
-  if (days >= threshold * 2) return 'severity-high';
-  if (days >= threshold) return 'severity-medium';
-  return 'severity-low';
-}
-
-function statusClass(status) {
-  const s = status.toLowerCase();
-  if (s.includes('progress') || s.includes('hold')) return 'status-inprogress';
-  if (s.includes('review') || s.includes('test')) return 'status-review';
-  return 'status-other';
-}
-
-function priorityClass(pri) {
-  return 'pri-' + (pri || 'minor').toLowerCase().replace(/\s/g, '');
-}
-
-function getFiltered() {
-  const threshold = parseInt(document.getElementById('thresholdSlider').value);
-  const projFilter = document.getElementById('projectFilter').value;
-  const priFilter = document.getElementById('priorityFilter').value;
-
-  return ISSUES.filter(i => {
-    if (staleDays(i) < threshold) return false;
-    if (projFilter !== 'all' && i.project !== projFilter) return false;
-    if (priFilter !== 'all' && i.priority !== priFilter) return false;
-    return true;
-  });
-}
-
-function render() {
-  const threshold = parseInt(document.getElementById('thresholdSlider').value);
-  document.getElementById('thresholdLabel').textContent = threshold + ' days';
-
-  const filtered = getFiltered();
-
-  // Summary cards
-  const totalStalled = filtered.length;
-  const maxDays = filtered.length ? Math.max(...filtered.map(i => staleDays(i))) : 0;
-  const avgDays = filtered.length ? Math.round(filtered.reduce((s, i) => s + staleDays(i), 0) / filtered.length) : 0;
-  const criticalCount = filtered.filter(i => staleDays(i) >= threshold * 3).length;
-  const teamsAffected = new Set(filtered.map(i => i.team)).size;
-
-  document.getElementById('summaryCards').innerHTML = `
-    <div class="stat-card">
-      <div class="num" style="color:var(--red)">${totalStalled}</div>
-      <div class="label">Stalled Items</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" style="color:var(--orange)">${criticalCount}</div>
-      <div class="label">Critical (3x threshold)</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" style="color:var(--yellow)">${avgDays}d</div>
-      <div class="label">Avg Days Stale</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" style="color:var(--accent)">${maxDays}d</div>
-      <div class="label">Longest Stale</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" style="color:var(--purple)">${teamsAffected}/${TEAMS.length}</div>
-      <div class="label">Teams Affected</div>
-    </div>
-  `;
-
-  // Charts
-  const maxBarItems = Math.max(...TEAMS.map(t => filtered.filter(i => i.team === t).length), 1);
-  const teamBars = TEAMS.map(t => {
-    const count = filtered.filter(i => i.team === t).length;
-    const pct = Math.round(count / Math.max(maxBarItems, 1) * 100);
-    const color = count >= 10 ? 'bar-red' : count >= 5 ? 'bar-orange' : count >= 1 ? 'bar-yellow' : 'bar-green';
-    return `<div class="bar-row">
-      <div class="bar-label">${t}</div>
-      <div class="bar-track"><div class="bar-fill ${color}" style="width:${Math.max(pct, 8)}%">${count}</div></div>
-    </div>`;
-  }).join('');
-
-  // Assignee heatmap
-  const assigneeCounts = {};
-  filtered.forEach(i => {
-    assigneeCounts[i.assignee] = (assigneeCounts[i.assignee] || 0) + 1;
-  });
-  const sortedAssignees = Object.entries(assigneeCounts).sort((a, b) => b[1] - a[1]);
-  const maxAssigneeCount = sortedAssignees.length ? sortedAssignees[0][1] : 1;
-  const heatCells = sortedAssignees.map(([name, count]) => {
-    const ratio = count / maxAssigneeCount;
-    const color = ratio >= 0.75 ? 'var(--red)' : ratio >= 0.5 ? 'var(--orange)' : ratio >= 0.25 ? 'var(--yellow)' : 'var(--green)';
-    return `<div class="heatmap-cell">
-      <div class="name">${name.split(',').reverse().join(' ').trim()}</div>
-      <div class="count" style="color:${color}">${count}</div>
-    </div>`;
-  }).join('');
-
-  document.getElementById('charts').innerHTML = `
-    <div class="chart-card">
-      <h3>STALLED ITEMS BY TEAM</h3>
-      ${teamBars}
-    </div>
-    <div class="chart-card">
-      <h3>STALLED ITEMS BY ASSIGNEE</h3>
-      <div class="heatmap-grid">${heatCells || '<div style="color:var(--text-dim)">No stalled items</div>'}</div>
-    </div>
-  `;
-
-  // Team sections
-  let sectionsHtml = '';
-  for (const team of TEAMS) {
-    const teamIssues = filtered.filter(i => i.team === team)
-      .sort((a, b) => staleDays(b) - staleDays(a));
-
-    const stalledCount = teamIssues.length;
-    const critCount = teamIssues.filter(i => staleDays(i) >= threshold * 3).length;
-    const highCount = teamIssues.filter(i => {
-      const d = staleDays(i);
-      return d >= threshold * 2 && d < threshold * 3;
-    }).length;
-    const badgeClass = critCount > 0 ? 'badge-red' : highCount > 0 ? 'badge-orange' : stalledCount > 0 ? 'badge-yellow' : 'badge-green';
-    const teamColor = TEAM_COLORS[team];
-
-    let rows = '';
-    for (const iss of teamIssues) {
-      const days = staleDays(iss);
-      const sevClass = severityClass(days, threshold);
-      const stClass = statusClass(iss.status);
-      const priClass = priorityClass(iss.priority);
-      const createdDays = daysSince(iss.created);
-      rows += `<tr>
-        <td><a href="${iss.url}" target="_blank">${iss.key}</a></td>
-        <td class="summary-cell" title="${iss.summary.replace(/"/g, '&quot;')}">${iss.summary}</td>
-        <td>${iss.assignee.split(',').reverse().join(' ').trim()}</td>
-        <td><span class="status-pill ${stClass}">${iss.status}</span></td>
-        <td><span class="priority-pill ${priClass}">${iss.priority}</span></td>
-        <td>${iss.project}</td>
-        <td class="days-cell ${sevClass}">${days}d</td>
-        <td style="color:var(--text-dim)">${createdDays}d</td>
-      </tr>`;
-    }
-
-    const tableHtml = teamIssues.length === 0
-      ? '<div class="empty-state">No stalled items for this team at current threshold</div>'
-      : `<table>
-          <thead><tr>
-            <th>Key</th><th>Summary</th><th>Assignee</th><th>Status</th><th>Priority</th><th>Project</th>
-            <th>Days Stale</th><th>Age</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
-
-    sectionsHtml += `
-      <div class="team-section">
-        <div class="team-header" onclick="toggleTeam(this)" style="border-left:4px solid ${teamColor}">
-          <h2>
-            <span class="arrow">&#9660;</span>
-            ${team}
-            <span class="badge ${badgeClass}">${stalledCount}</span>
-          </h2>
-          <div class="team-stats">
-            ${critCount ? `<span class="mini-stat" style="color:var(--red)"><strong>${critCount}</strong> critical</span>` : ''}
-            ${highCount ? `<span class="mini-stat" style="color:var(--orange)"><strong>${highCount}</strong> high</span>` : ''}
-            <span class="mini-stat"><strong>${stalledCount}</strong> total stalled</span>
-          </div>
-        </div>
-        <div class="team-body">${tableHtml}</div>
-      </div>
-    `;
-  }
-
-  document.getElementById('teamSections').innerHTML = sectionsHtml;
-  document.getElementById('timestamp').textContent = 'Data as of ' + TODAY.toISOString().slice(0, 10) + ' | Threshold: items not updated in ' + threshold + '+ days';
-}
-
-function toggleTeam(header) {
-  header.classList.toggle('collapsed');
-  const body = header.nextElementSibling;
-  body.classList.toggle('hidden');
-}
-
-document.getElementById('thresholdSlider').addEventListener('input', render);
-document.getElementById('projectFilter').addEventListener('change', render);
-document.getElementById('priorityFilter').addEventListener('change', render);
-
-render();
 </script>
 </body>
 </html>

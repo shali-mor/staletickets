@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PI 2026.1 Initiative Completion Dashboard</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2d3141;
+    --text: #e1e4ed;
+    --text-dim: #8b90a0;
+    --accent: #6c8cff;
+    --red: #ff6b6b;
+    --orange: #ffa64d;
+    --yellow: #ffd93d;
+    --green: #51cf66;
+    --purple: #b197fc;
+    --cyan: #66d9e8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+  }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .header h1 span { color: var(--text-dim); font-weight: 400; }
+  .date-stamp { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+  .tab-bar {
+    display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 10px 24px; cursor: pointer; font-size: 14px; font-weight: 500;
+    color: var(--text-dim); border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .summary-card .num { font-size: 28px; font-weight: 700; }
+  .summary-card .lbl { font-size: 12px; color: var(--text-dim); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .num.green { color: var(--green); }
+  .num.yellow { color: var(--yellow); }
+  .num.orange { color: var(--orange); }
+  .num.red { color: var(--red); }
+  .num.purple { color: var(--purple); }
+  .num.accent { color: var(--accent); }
+  .progress-bar-container {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 24px;
+  }
+  .progress-bar-container .title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .progress-bar-outer {
+    height: 24px; background: var(--surface2); border-radius: 12px; overflow: hidden;
+    display: flex;
+  }
+  .progress-bar-seg {
+    height: 100%; transition: width 0.4s ease;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #fff; min-width: 30px;
+  }
+  .progress-bar-seg.done { background: var(--green); }
+  .progress-bar-seg.review { background: var(--yellow); color: #333; }
+  .progress-bar-seg.progress { background: var(--orange); }
+  .progress-bar-seg.todo { background: var(--red); }
+  .progress-legend {
+    display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: var(--text-dim);
+  }
+  .progress-legend span::before {
+    content: ''; display: inline-block; width: 10px; height: 10px;
+    border-radius: 3px; margin-right: 5px; vertical-align: middle;
+  }
+  .legend-done::before { background: var(--green); }
+  .legend-review::before { background: var(--yellow); }
+  .legend-progress::before { background: var(--orange); }
+  .legend-todo::before { background: var(--red); }
+  .section-title {
+    font-size: 16px; font-weight: 600; margin: 24px 0 12px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border);
+  }
+  .team-badge {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+    background: var(--surface2); color: var(--cyan);
+  }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--surface); border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border); margin-bottom: 16px;
+  }
+  th {
+    text-align: left; padding: 10px 14px; font-weight: 600;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-dim); background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(108, 140, 255, 0.04); }
+  .status-badge {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 10px; white-space: nowrap;
+  }
+  .status-done { background: rgba(81, 207, 102, 0.15); color: var(--green); }
+  .status-review { background: rgba(255, 217, 61, 0.15); color: var(--yellow); }
+  .status-progress { background: rgba(255, 166, 77, 0.15); color: var(--orange); }
+  .status-todo { background: rgba(255, 107, 107, 0.15); color: var(--red); }
+  .status-blocked { background: rgba(255, 107, 107, 0.25); color: var(--red); font-weight: 700; }
+  .status-deferred { background: rgba(177, 151, 252, 0.15); color: var(--purple); }
+  .blocker-row td { background: rgba(255, 107, 107, 0.03); font-size: 12px; }
+  .blocker-row td:first-child { padding-left: 36px; }
+  .blocker-indent { color: var(--text-dim); margin-right: 6px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .note { font-size: 12px; color: var(--text-dim); font-style: italic; }
+  .feature-area {
+    font-size: 13px; font-weight: 600; color: var(--cyan);
+  }
+  .expand-btn {
+    cursor: pointer; user-select: none; font-size: 12px;
+    color: var(--accent); background: none; border: none; padding: 2px 6px;
+  }
+  .expand-btn:hover { text-decoration: underline; }
+  .hidden { display: none; }
+  .filter-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 6px 14px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface); color: var(--text-dim); cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>PI 2026.1 Initiative Completion Dashboard</h1>
+    <div class="date-stamp">Generated: March 15, 2026 &mdash; Data from Jira & Confluence</div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="switchTab('cloud')">Cloud DLP</div>
+  <div class="tab" onclick="switchTab('onprem')">DLP On-Prem</div>
+</div>
+
+<!-- ==================== CLOUD DLP ==================== -->
+<div id="tab-cloud" class="tab-content active">
+
+  <div class="summary-bar">
+    <div class="summary-card"><div class="num accent">15</div><div class="lbl">Total Initiatives</div></div>
+    <div class="summary-card"><div class="num green">7</div><div class="lbl">Completed</div></div>
+    <div class="summary-card"><div class="num yellow">4</div><div class="lbl">In Review</div></div>
+    <div class="summary-card"><div class="num orange">3</div><div class="lbl">In Progress</div></div>
+    <div class="summary-card"><div class="num purple">1</div><div class="lbl">Deferred to PI 2026.2</div></div>
+  </div>
+
+  <div class="progress-bar-container">
+    <div class="title">Overall Cloud DLP Completion</div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-seg done" style="width:46.7%">47%</div>
+      <div class="progress-bar-seg review" style="width:26.7%">27%</div>
+      <div class="progress-bar-seg progress" style="width:20%">20%</div>
+      <div class="progress-bar-seg todo" style="width:6.6%">7%</div>
+    </div>
+    <div class="progress-legend">
+      <span class="legend-done">Done (7)</span>
+      <span class="legend-review">In Review (4)</span>
+      <span class="legend-progress">In Progress (3)</span>
+      <span class="legend-todo">Deferred (1)</span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterCloud('all')">All</button>
+    <button class="filter-btn" onclick="filterCloud('incomplete')">Incomplete Only</button>
+    <button class="filter-btn" onclick="filterCloud('done')">Done Only</button>
+  </div>
+
+  <!-- Cloud DLP Enterprise Readiness -->
+  <div class="section-title">Cloud DLP Enterprise Readiness</div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-612">DSA-612</a></td>
+      <td>DLPaaS: Upgrade Predefined Policies to latest stable (10.4 GA)</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-914">DSA-914</a></td>
+      <td>Improve Policy Management Usability</td>
+      <td><span class="status-badge status-deferred">DEFERRED TO PI 2026.2</span></td>
+      <td class="note">Not started &mdash; moved to next PI</td>
+    </tr>
+  </table>
+
+  <!-- Cloud DLP with DSE Agent -->
+  <div class="section-title">Cloud DLP with DSE Agent <span class="team-badge">Theme: DSA-618</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-942">DSA-942</a></td>
+      <td>EPClassifier | RAP | Development & Integration with DSE Agent</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-709">DSA-709</a></td>
+      <td>DLP SaaS | RAP | Regression Testing</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-884">DSA-884</a></td>
+      <td>Cloud Portal Support for DSE Agent - PI 2026.1</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/NEO-19170">NEO-19170</a></td>
+      <td>DSE Agent - Cloud Support for Endpoint</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Hazan, Shahal</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/NEO-18331">NEO-18331</a></td>
+      <td>DSE Agent - Cloud Portal Bugs</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Hazan, Shahal</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-958">DSA-958</a></td>
+      <td>DLP SaaS | RAP | Integration with DSE Agent</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/NEO-19488">NEO-19488</a></td>
+      <td>RAP Integration with DSE Agent</td>
+      <td><span class="status-badge status-review">In Review</span></td>
+      <td>Salti, Hayim</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-832">DSA-832</a></td>
+      <td>DLP Mode Switching Support (migration tooling)</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-33067">DLP-33067</a></td>
+      <td>EPClassifier | Support Switch Mode (DLP mode switching)</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Bar-Nachum, Nir</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-789">DSA-789</a></td>
+      <td>DSE Agent | Mac Support</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-33050">DLP-33050</a></td>
+      <td>Mac Support for AlertJsonV2</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Bar-Nachum, Nir</td>
+    </tr>
+  </table>
+
+  <!-- Signal 360 (DPS) -->
+  <div class="section-title">Signal 360 (DPS Analytics)</div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-897">DSA-897</a></td>
+      <td>DPS Analytics - Integration with Insights</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DPS-5010">DPS-5010</a></td>
+      <td>Partially Onboard all tenants to platform using new API</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Sastiel, Gadi</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-741">DSA-741</a></td>
+      <td>DPS & DLP OnPrem Dashboards in Tableau - Signal 360</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/BD-4488">BD-4488</a></td>
+      <td>Signal 360 Dashboard MVP1</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Hansen, Erik</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/BD-4373">BD-4373</a></td>
+      <td>Dashboard reqs for DLP Telemetry Signal 360</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>villa, sebastian</td>
+    </tr>
+  </table>
+
+  <!-- CISO Dashboard (Cloud) -->
+  <div class="section-title">CISO Dashboard (Cloud / SWG Integration)</div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-943">DSA-943</a></td>
+      <td>CISO Insights | Send OnPrem SWG data to Insights</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-877">DSA-877</a></td>
+      <td>Centralized Proxy Configuration Management via EIP - Phase 2</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-729">DSA-729</a></td>
+      <td>DLPaaS | Insights Integration for CISO Dashboard & Scheduled Reports</td>
+      <td><span class="status-badge status-deferred">DEFERRED TO PI 2026.2</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/NEO-18847">NEO-18847</a></td>
+      <td>DLPaaS | Insights Integration for CISO Dashboard</td>
+      <td><span class="status-badge status-todo">OPEN / Unassigned</span></td>
+      <td>Unassigned</td>
+    </tr>
+  </table>
+
+  <!-- False Positives -->
+  <div class="section-title">False Positives Reduction</div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-946">DSA-946</a></td>
+      <td>False Positives - PI 2026.1</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/NEO-19421">NEO-19421</a></td>
+      <td>False positives - Cloud Portal Support</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Hazan, Shahal</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-33176">DLP-33176</a></td>
+      <td>False positives - Classification</td>
+      <td><span class="status-badge status-review">In Review</span></td>
+      <td>Binder, Michal</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ==================== DLP ON-PREM ==================== -->
+<div id="tab-onprem" class="tab-content">
+
+  <div class="summary-bar">
+    <div class="summary-card"><div class="num accent">29</div><div class="lbl">Total Initiatives</div></div>
+    <div class="summary-card"><div class="num green">14</div><div class="lbl">Completed</div></div>
+    <div class="summary-card"><div class="num yellow">6</div><div class="lbl">In Review</div></div>
+    <div class="summary-card"><div class="num orange">7</div><div class="lbl">In Progress</div></div>
+    <div class="summary-card"><div class="num red">2</div><div class="lbl">Dropped / Blocked</div></div>
+  </div>
+
+  <div class="progress-bar-container">
+    <div class="title">Overall DLP On-Prem Completion</div>
+    <div class="progress-bar-outer">
+      <div class="progress-bar-seg done" style="width:48.3%">48%</div>
+      <div class="progress-bar-seg review" style="width:20.7%">21%</div>
+      <div class="progress-bar-seg progress" style="width:24.1%">24%</div>
+      <div class="progress-bar-seg todo" style="width:6.9%">7%</div>
+    </div>
+    <div class="progress-legend">
+      <span class="legend-done">Done (14)</span>
+      <span class="legend-review">In Review (6)</span>
+      <span class="legend-progress">In Progress (7)</span>
+      <span class="legend-todo">Dropped/Blocked (2)</span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterOnprem('all')">All</button>
+    <button class="filter-btn" onclick="filterOnprem('incomplete')">Incomplete Only</button>
+    <button class="filter-btn" onclick="filterOnprem('done')">Done Only</button>
+  </div>
+
+  <!-- Saar/Gold - FSM Infra -->
+  <div class="section-title">CISO Dashboard <span class="team-badge">Saar / Gold (FSM Infra)</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-757">DSA-757</a></td>
+      <td>CISO Insights | Send incident updates (severity and status)</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-800">DSA-800</a></td>
+      <td>CISO Dashboard | Support backport to 10.4.1</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32799">DLP-32799</a></td>
+      <td>CISO Dashboard Support backport to 10.4.1</td>
+      <td><span class="status-badge status-review">In Review</span></td>
+      <td>Detkov, Vadim</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Signal 360 <span class="team-badge">Saar / Gold (FSM Infra)</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-724">DSA-724</a></td>
+      <td>DLP OnPrem Signal 360 | Daily FSM Telemetry Reporting</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-33193">DLP-33193</a></td>
+      <td>Signal360 | Automation</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Baharav, Bashi</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-801">DSA-801</a></td>
+      <td>Signal 360 | Support backport to 10.4.1</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32820">DLP-32820</a></td>
+      <td>Signal 360 support backport to 10.4.1</td>
+      <td><span class="status-badge status-review">In Review</span></td>
+      <td>Detkov, Vadim</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Kerberos & Java 17 <span class="team-badge">Saar / Gold (FSM Infra)</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-607">DSA-607</a></td>
+      <td>Fix Installation in Kerberos configured environment</td>
+      <td><span class="status-badge status-progress">IN REFINEMENT</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32739">DLP-32739</a></td>
+      <td>Kerberos improvements and bugfixes for PI2026.1</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Aroesti, Mor</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-31949">DLP-31949</a></td>
+      <td>Kerberos - implement for one connection</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Aroesti, Mor</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-329">DSA-329</a></td>
+      <td>DLP Manager: Java 17 Upgrade - merge to 10.5 master</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/FSM-474">FSM-474</a></td>
+      <td>Stabilize Java 17 Upgrade</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Leibowitz, Esty</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-29080">DLP-29080</a></td>
+      <td>Java 17 additional components upgrade and QA</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Leibowitz, Esty</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-29079">DLP-29079</a></td>
+      <td>Java 17 - CI and Automation environment</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Aroesti, Mor</td>
+    </tr>
+  </table>
+
+  <!-- Costa/Platinum - FSM -->
+  <div class="section-title">Policy Export & Tech Support Reduction <span class="team-badge">Costa / Platinum (FSM)</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-802">DSA-802</a></td>
+      <td>Policy Import Export backported to 10.4.1</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-910">DSA-910</a></td>
+      <td>Policy Export - complete unit tests & QA verifications</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-767">DSA-767</a></td>
+      <td>Improve DLP upgrade checks (backup, policy version, deployment)</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-33656">DLP-33656</a></td>
+      <td>Add validation for DLP Backup before starting upgrade</td>
+      <td><span class="status-badge status-review">In Review</span></td>
+      <td>Osadchy, Victor</td>
+    </tr>
+  </table>
+
+  <div class="section-title">High Availability & SVM Fixes <span class="team-badge">Costa / Platinum (FSM)</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-790">DSA-790</a></td>
+      <td>[Walmart, Citi] High Availability - SQL AlwaysOn</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32741">DLP-32741</a></td>
+      <td>Milestone 2 - Support Installation with Availability Group</td>
+      <td><span class="status-badge status-review">In Review</span></td>
+      <td>Chrushchov, Constantine</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-575">DSA-575</a></td>
+      <td>Replace inline style in FSM (POC)</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-833">DSA-833</a></td>
+      <td>Replace Fusion charts in FSM</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+  </table>
+
+  <!-- Sagy/Cobalt & Onyx - Engine -->
+  <div class="section-title">Engine: Security & Customer Requests <span class="team-badge">Sagy / Cobalt & Onyx</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-797">DSA-797</a></td>
+      <td>Automatic ca.cert replacement of certificate chain</td>
+      <td><span class="status-badge status-progress">IN REFINEMENT</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32871">DLP-32871</a></td>
+      <td>Certificate Renewal Strategy and Implementation</td>
+      <td><span class="status-badge status-progress">In Refinement</span></td>
+      <td>Benarosh, Tali</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32870">DLP-32870</a></td>
+      <td>HTTPS Certificate Creation and Process Understanding</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Benarosh, Tali</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-808">DSA-808</a></td>
+      <td>OCR-Based Text Extraction on Endpoint for DLP</td>
+      <td><span class="status-badge status-blocked">DROPPED FROM PI</span></td>
+      <td class="note">Confirmed not in this PI due to other assignments (ca.cert)</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-577">DSA-577</a></td>
+      <td>Enable Canonization of Arabic Digits in DLP Policies</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-31480">DLP-31480</a></td>
+      <td>Detect credit card number in Arabic</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Benarosh, Tali</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-762">DSA-762</a></td>
+      <td>Prioritize metadata-based classifiers (scan efficiency)</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-599">DSA-599</a></td>
+      <td>Post-Timeout Sensitive Data Detection and Reporting to UI</td>
+      <td><span class="status-badge status-review">READY FOR REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32966">DLP-32966</a></td>
+      <td>Quality Testing (QA + Dev)</td>
+      <td><span class="status-badge status-review">Ready for Review</span></td>
+      <td>Manoim, Mark</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-792">DSA-792</a></td>
+      <td>Classifier | Google labels for CASB channel (BBVA)</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-33044">DLP-33044</a></td>
+      <td>Extend ContentExtractor for external labels</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Kumar, Mantosh</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Engine: Cloud DLP & F1E Support <span class="team-badge">Sagy / Cobalt & Onyx</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-791">DSA-791</a></td>
+      <td>DSE Agent | DLP Engine Support for Cloud Managed F1E</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32215">DLP-32215</a></td>
+      <td>DSE Agent | Classifier Bugs</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Bar-Nachum, Nir</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-31737">DLP-31737</a></td>
+      <td>DSE Agent | Classifier Tasks</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Bar-Nachum, Nir</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-890">DSA-890</a></td>
+      <td>Fingerprinter Service | Structured | Engine support</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-30460">DLP-30460</a></td>
+      <td>Structured | StructuredFP file format for OSS</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Lerman, Yan</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-30456">DLP-30456</a></td>
+      <td>Structured | DLL</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Lerman, Yan</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-444">DSA-444</a></td>
+      <td>Cloud FPR Service Support (unstructured) | Engine Support</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-30446">DLP-30446</a></td>
+      <td>QA tests - Cloud FPR</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Geva, Lucy</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-30385">DLP-30385</a></td>
+      <td>Unstructured | Investigate hashes file size</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Lerman, Yan</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-30374">DLP-30374</a></td>
+      <td>Unstructured | FPNE delta/compression options</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Lerman, Yan</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-614">DSA-614</a></td>
+      <td>Keyview upgrade from 24.4 to 25.4</td>
+      <td><span class="status-badge status-review">IN REVIEW</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32378">DLP-32378</a></td>
+      <td>Upgrade Keyview from 24.4 to 25.4 in FSM</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Srur, Saar</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-31932">DLP-31932</a></td>
+      <td>KV 25.4 | Validation of Legacy Issue Fixes</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Kumar, Mantosh</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-31931">DLP-31931</a></td>
+      <td>QA Activities for KeyView 25.4 Upgrade</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Geva, Lucy</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-615">DSA-615</a></td>
+      <td>Content extraction as a service</td>
+      <td><span class="status-badge status-blocked">DROPPED FROM PI</span></td>
+      <td class="note">Confirmed not in this PI &mdash; depends on KV upgrade</td>
+    </tr>
+  </table>
+
+  <!-- Itzhak/Hydrogen & Titanium - Classification -->
+  <div class="section-title">Classification: Tech Debt & Upgrades <span class="team-badge">Itzhak / Hydrogen & Titanium</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-654">DSA-654</a></td>
+      <td>MIP SDK Upgrade to 1.17.154 (Windows)</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-100">DSA-100</a></td>
+      <td>EP Server Upgrade (Apache)</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-647">DSA-647</a></td>
+      <td>Upgrade the ICU and Boost library</td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td></td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32937">DLP-32937</a></td>
+      <td>[Phase 5/5] Upgrading libicu and boost - MacOS</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Kekatpure, Vineet</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32930">DLP-32930</a></td>
+      <td>[Phase 4/5] Upgrading libicu and boost - Linux</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Ayger, Asi</td>
+    </tr>
+    <tr class="blocker-row row-incomplete">
+      <td><span class="blocker-indent">&rarr;</span><a href="https://forcepoint.atlassian.net/browse/DLP-32923">DLP-32923</a></td>
+      <td>[Phase 3/5] Upgrading libicu and boost - Windows</td>
+      <td><span class="status-badge status-progress">In Progress</span></td>
+      <td>Kekatpure, Vineet</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-456">DSA-456</a></td>
+      <td>CPS code migration to Git</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-807">DSA-807</a></td>
+      <td>Pipeline Compilation with Visual Studio 2026</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-70">DSA-70</a></td>
+      <td>Upgrade OpenSSL on Mac</td>
+      <td><span class="status-badge status-blocked">BLOCKED</span></td>
+      <td class="note">Blocked &mdash; dependent on concurrent work (ICU library has higher priority)</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Classification: AI & Innovation <span class="team-badge">Itzhak / Hydrogen & Titanium</span></div>
+  <table>
+    <tr><th>Key</th><th>Initiative</th><th>Status</th><th>Blocking Tickets</th></tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-719">DSA-719</a></td>
+      <td>Application Group for AI Monitoring</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-done">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-845">DSA-845</a></td>
+      <td>AI-Based Automatic dictionary updates</td>
+      <td><span class="status-badge status-done">DONE</span></td>
+      <td>&mdash;</td>
+    </tr>
+    <tr class="row-incomplete">
+      <td><a href="https://forcepoint.atlassian.net/browse/DSA-945">DSA-945</a></td>
+      <td>[Research] AI-Powered prompt recognition</td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td class="note">Pending POC &mdash; unknown work scope</td>
+    </tr>
+  </table>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.querySelector('.tab[onclick*="' + tab + '"]').classList.add('active');
+}
+
+function filterCloud(mode) {
+  applyFilter('tab-cloud', mode);
+}
+
+function filterOnprem(mode) {
+  applyFilter('tab-onprem', mode);
+}
+
+function applyFilter(tabId, mode) {
+  const tab = document.getElementById(tabId);
+  tab.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  tab.querySelectorAll('tr.row-done, tr.row-incomplete').forEach(row => {
+    if (mode === 'all') {
+      row.style.display = '';
+    } else if (mode === 'done') {
+      row.style.display = row.classList.contains('row-done') ? '' : 'none';
+    } else if (mode === 'incomplete') {
+      row.style.display = row.classList.contains('row-incomplete') ? '' : 'none';
+    }
+  });
+}
+</script>
+</body>
+</html>
