@@ -158,20 +158,20 @@
   }
   .collapse-all-btn:hover { border-color: var(--accent); color: var(--text); }
   .section-header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex; align-items: center; gap: 10px;
     cursor: pointer; user-select: none;
   }
   .section-header:hover { opacity: 0.85; }
   .section-chevron {
     font-size: 14px; color: var(--text-dim); transition: transform 0.2s;
-    margin-left: 8px; display: inline-block;
+    display: inline-block; flex-shrink: 0;
   }
   .section-chevron.collapsed { transform: rotate(-90deg); }
   .section-group.collapsed table { display: none; }
   .section-count {
     font-size: 12px; font-weight: 500; color: var(--text-dim);
     background: var(--surface2); padding: 2px 8px; border-radius: 10px;
-    margin-left: 8px;
+    margin-left: auto; white-space: nowrap;
   }
   .section-count.complete { color: var(--green); background: rgba(81, 207, 102, 0.15); }
   .section-count.partial { color: var(--orange); background: rgba(255, 166, 77, 0.15); }
