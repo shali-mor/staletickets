@@ -173,6 +173,16 @@
     background: var(--surface2); padding: 2px 8px; border-radius: 10px;
     margin-left: 8px;
   }
+  .section-count.complete { color: var(--green); background: rgba(81, 207, 102, 0.15); }
+  .section-count.partial { color: var(--orange); background: rgba(255, 166, 77, 0.15); }
+  .section-count.at-risk { color: var(--red); background: rgba(255, 107, 107, 0.15); }
+  .summary-initiatives {
+    font-size: 13px; color: var(--text-dim); margin-bottom: 20px;
+    padding: 10px 16px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .summary-initiatives strong { color: var(--text); }
+  .summary-initiatives .dot { margin: 0 8px; opacity: 0.4; }
 </style>
 </head>
 <body>
@@ -194,7 +204,7 @@
 
   <div class="summary-bar" id="cloud-summary"></div>
   <div class="progress-bar-container" id="cloud-progress">
-    <div class="title">Overall Cloud DLP Completion</div>
+    <div class="title">Cloud DLP — Theme Completion</div>
     <div class="progress-bar-outer" id="cloud-bar"></div>
     <div class="progress-legend" id="cloud-legend"></div>
   </div>
@@ -402,7 +412,7 @@
 
   <div class="summary-bar" id="onprem-summary"></div>
   <div class="progress-bar-container" id="onprem-progress">
-    <div class="title">Overall DLP On-Prem Completion</div>
+    <div class="title">DLP On-Prem — Theme Completion</div>
     <div class="progress-bar-outer" id="onprem-bar"></div>
     <div class="progress-legend" id="onprem-legend"></div>
   </div>
@@ -889,75 +899,121 @@ function toggleAllSections(tabId) {
   btn.textContent = allCollapsed ? 'Collapse All' : 'Expand All';
 }
 
-/* --- Dynamic Counts --- */
-function countInitiatives(tabId) {
-  const tab = document.getElementById(tabId);
-  // Only count non-blocker initiative rows (rows with row-done or row-incomplete that aren't blocker-row)
-  const allRows = tab.querySelectorAll('tr.row-done, tr.row-incomplete');
-  let done = 0, review = 0, progress = 0, dropped = 0;
-  allRows.forEach(row => {
-    if (row.classList.contains('blocker-row')) return; // skip blockers
-    const badge = row.querySelector('.status-badge');
-    if (!badge) return;
-    const text = badge.textContent.trim().toUpperCase();
-    if (text.includes('DONE')) done++;
-    else if (text.includes('REVIEW') || text.includes('READY')) review++;
-    else if (text.includes('PROGRESS') || text.includes('REFINEMENT')) progress++;
-    else if (text.includes('DROPPED') || text.includes('BLOCKED') || text.includes('DEFERRED') || text === 'OPEN') dropped++;
-  });
-  const total = done + review + progress + dropped;
-  return { total, done, review, progress, dropped };
+/* --- Classify a single initiative row --- */
+function classifyRow(row) {
+  const badge = row.querySelector('.status-badge');
+  if (!badge) return null;
+  const text = badge.textContent.trim().toUpperCase();
+  if (text.includes('DONE')) return 'done';
+  if (text.includes('REVIEW') || text.includes('READY')) return 'review';
+  if (text.includes('PROGRESS') || text.includes('REFINEMENT')) return 'progress';
+  if (text.includes('DROPPED') || text.includes('BLOCKED') || text.includes('DEFERRED') || text === 'OPEN') return 'dropped';
+  return null;
 }
 
-function renderSummary(prefix, counts, droppedLabel) {
+/* --- Theme-level counts --- */
+function countThemes(tabId) {
+  const tab = document.getElementById(tabId);
+  const groups = tab.querySelectorAll('.section-group');
+  let totalThemes = 0, complete = 0, inProgress = 0, atRisk = 0;
+  let iTotal = 0, iDone = 0, iReview = 0, iProgress = 0, iDropped = 0;
+
+  groups.forEach(group => {
+    const rows = group.querySelectorAll('tr.row-done, tr.row-incomplete');
+    let tDone = 0, tReview = 0, tProgress = 0, tDropped = 0;
+    rows.forEach(row => {
+      if (row.classList.contains('blocker-row')) return;
+      const cat = classifyRow(row);
+      if (cat === 'done') tDone++;
+      else if (cat === 'review') tReview++;
+      else if (cat === 'progress') tProgress++;
+      else if (cat === 'dropped') tDropped++;
+    });
+    const themeTotal = tDone + tReview + tProgress + tDropped;
+    if (themeTotal === 0) return;
+
+    totalThemes++;
+    iTotal += themeTotal; iDone += tDone; iReview += tReview;
+    iProgress += tProgress; iDropped += tDropped;
+
+    if (tDone === themeTotal) complete++;
+    else if (tDropped > 0) atRisk++;
+    else inProgress++;
+  });
+
+  return {
+    totalThemes, complete, inProgress, atRisk,
+    initiatives: { total: iTotal, done: iDone, review: iReview, progress: iProgress, dropped: iDropped }
+  };
+}
+
+/* --- Render summary cards + progress bar --- */
+function renderSummary(prefix, data, droppedLabel) {
   const summaryEl = document.getElementById(prefix + '-summary');
   summaryEl.innerHTML =
-    '<div class="summary-card"><div class="num accent">' + counts.total + '</div><div class="lbl">Total Initiatives</div></div>' +
-    '<div class="summary-card"><div class="num green">' + counts.done + '</div><div class="lbl">Completed</div></div>' +
-    '<div class="summary-card"><div class="num yellow">' + counts.review + '</div><div class="lbl">In Review</div></div>' +
-    '<div class="summary-card"><div class="num orange">' + counts.progress + '</div><div class="lbl">In Progress</div></div>' +
-    '<div class="summary-card"><div class="num red">' + counts.dropped + '</div><div class="lbl">' + droppedLabel + '</div></div>';
+    '<div class="summary-card"><div class="num accent">' + data.totalThemes + '</div><div class="lbl">Total Themes</div></div>' +
+    '<div class="summary-card"><div class="num green">' + data.complete + '</div><div class="lbl">Complete</div></div>' +
+    '<div class="summary-card"><div class="num orange">' + data.inProgress + '</div><div class="lbl">In Progress</div></div>' +
+    '<div class="summary-card"><div class="num red">' + data.atRisk + '</div><div class="lbl">At Risk</div></div>';
 
+  // Initiative breakdown line
+  const ic = data.initiatives;
+  const initLine = document.createElement('div');
+  initLine.className = 'summary-initiatives';
+  initLine.innerHTML = '<strong>' + ic.total + ' Initiatives</strong>' +
+    '<span class="dot">&middot;</span>' + ic.done + ' done' +
+    '<span class="dot">&middot;</span>' + ic.review + ' in review' +
+    '<span class="dot">&middot;</span>' + ic.progress + ' in progress' +
+    '<span class="dot">&middot;</span>' + ic.dropped + ' ' + droppedLabel.toLowerCase();
+  summaryEl.after(initLine);
+
+  // Theme-level progress bar
   const barEl = document.getElementById(prefix + '-bar');
-  const t = counts.total || 1;
-  const pDone = ((counts.done / t) * 100).toFixed(1);
-  const pReview = ((counts.review / t) * 100).toFixed(1);
-  const pProgress = ((counts.progress / t) * 100).toFixed(1);
-  const pDropped = ((counts.dropped / t) * 100).toFixed(1);
+  const t = data.totalThemes || 1;
+  const pComplete = ((data.complete / t) * 100).toFixed(1);
+  const pInProgress = ((data.inProgress / t) * 100).toFixed(1);
+  const pAtRisk = ((data.atRisk / t) * 100).toFixed(1);
   barEl.innerHTML =
-    (counts.done ? '<div class="progress-bar-seg done" style="width:' + pDone + '%">' + Math.round(pDone) + '%</div>' : '') +
-    (counts.review ? '<div class="progress-bar-seg review" style="width:' + pReview + '%">' + Math.round(pReview) + '%</div>' : '') +
-    (counts.progress ? '<div class="progress-bar-seg progress" style="width:' + pProgress + '%">' + Math.round(pProgress) + '%</div>' : '') +
-    (counts.dropped ? '<div class="progress-bar-seg todo" style="width:' + pDropped + '%">' + Math.round(pDropped) + '%</div>' : '');
+    (data.complete ? '<div class="progress-bar-seg done" style="width:' + pComplete + '%">' + data.complete + '/' + data.totalThemes + '</div>' : '') +
+    (data.inProgress ? '<div class="progress-bar-seg progress" style="width:' + pInProgress + '%">' + data.inProgress + '/' + data.totalThemes + '</div>' : '') +
+    (data.atRisk ? '<div class="progress-bar-seg todo" style="width:' + pAtRisk + '%">' + data.atRisk + '/' + data.totalThemes + '</div>' : '');
 
   const legendEl = document.getElementById(prefix + '-legend');
   legendEl.innerHTML =
-    '<span class="legend-done">Done (' + counts.done + ')</span>' +
-    '<span class="legend-review">In Review (' + counts.review + ')</span>' +
-    '<span class="legend-progress">In Progress (' + counts.progress + ')</span>' +
-    '<span class="legend-todo">' + droppedLabel + ' (' + counts.dropped + ')</span>';
+    '<span class="legend-done">Complete (' + data.complete + ')</span>' +
+    '<span class="legend-progress">In Progress (' + data.inProgress + ')</span>' +
+    '<span class="legend-todo">At Risk (' + data.atRisk + ')</span>';
 }
 
-// Inject per-section initiative counts into headers
+/* --- Per-section "X/Y done" badges --- */
 function injectSectionCounts() {
   document.querySelectorAll('.section-group').forEach(group => {
     const rows = group.querySelectorAll('tr.row-done, tr.row-incomplete');
-    let count = 0;
-    rows.forEach(r => { if (!r.classList.contains('blocker-row')) count++; });
+    let total = 0, done = 0, hasDropped = false;
+    rows.forEach(r => {
+      if (r.classList.contains('blocker-row')) return;
+      total++;
+      const cat = classifyRow(r);
+      if (cat === 'done') done++;
+      if (cat === 'dropped') hasDropped = true;
+    });
     const header = group.querySelector('.section-header');
     const chevron = header.querySelector('.section-chevron');
     const badge = document.createElement('span');
     badge.className = 'section-count';
-    badge.textContent = count + (count === 1 ? ' initiative' : ' initiatives');
+    if (done === total && total > 0) badge.classList.add('complete');
+    else if (hasDropped || done === 0) badge.classList.add('at-risk');
+    else badge.classList.add('partial');
+    badge.textContent = done + '/' + total + ' initiatives done';
     header.insertBefore(badge, chevron);
   });
 }
 
 // Compute and render on load
-const cloudCounts = countInitiatives('tab-cloud');
-renderSummary('cloud', cloudCounts, 'Deferred');
-const onpremCounts = countInitiatives('tab-onprem');
-renderSummary('onprem', onpremCounts, 'Dropped / Blocked');
+const cloudData = countThemes('tab-cloud');
+renderSummary('cloud', cloudData, 'Deferred');
+const onpremData = countThemes('tab-onprem');
+renderSummary('onprem', onpremData, 'Dropped / Blocked');
 injectSectionCounts();
 </script>
 </body>

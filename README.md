@@ -1,10 +1,10 @@
-# On-Prem Scrum Teams — Stalled Items Dashboard
+# PGM Stats — DLP Dashboards
 
-A single-page dashboard that visualizes stalled work items across on-prem scrum teams, helping teams identify and address blocked or aging tickets.
+Dashboards for DLP program management: PI initiative tracking and stalled items monitoring.
 
 ## Live Demo
 
-**https://shali-mor.github.io/staletickets/**
+**https://shali-mor.github.io/pgm_stats/**
 
 ## Usage
 
