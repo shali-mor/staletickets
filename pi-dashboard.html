@@ -168,6 +168,11 @@
   }
   .section-chevron.collapsed { transform: rotate(-90deg); }
   .section-group.collapsed table { display: none; }
+  .section-count {
+    font-size: 12px; font-weight: 500; color: var(--text-dim);
+    background: var(--surface2); padding: 2px 8px; border-radius: 10px;
+    margin-left: 8px;
+  }
 </style>
 </head>
 <body>
@@ -933,11 +938,27 @@ function renderSummary(prefix, counts, droppedLabel) {
     '<span class="legend-todo">' + droppedLabel + ' (' + counts.dropped + ')</span>';
 }
 
+// Inject per-section initiative counts into headers
+function injectSectionCounts() {
+  document.querySelectorAll('.section-group').forEach(group => {
+    const rows = group.querySelectorAll('tr.row-done, tr.row-incomplete');
+    let count = 0;
+    rows.forEach(r => { if (!r.classList.contains('blocker-row')) count++; });
+    const header = group.querySelector('.section-header');
+    const chevron = header.querySelector('.section-chevron');
+    const badge = document.createElement('span');
+    badge.className = 'section-count';
+    badge.textContent = count + (count === 1 ? ' initiative' : ' initiatives');
+    header.insertBefore(badge, chevron);
+  });
+}
+
 // Compute and render on load
 const cloudCounts = countInitiatives('tab-cloud');
 renderSummary('cloud', cloudCounts, 'Deferred');
 const onpremCounts = countInitiatives('tab-onprem');
 renderSummary('onprem', onpremCounts, 'Dropped / Blocked');
+injectSectionCounts();
 </script>
 </body>
 </html>
