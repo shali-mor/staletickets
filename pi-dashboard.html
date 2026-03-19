@@ -183,6 +183,12 @@
   }
   .summary-initiatives strong { color: var(--text); }
   .summary-initiatives .dot { margin: 0 8px; opacity: 0.4; }
+  .sev-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .sev-ss    { background: rgba(255, 107, 107, 0.2); color: var(--red);    border: 1px solid rgba(255,107,107,0.4); }
+  .sev-critical { background: rgba(255, 166, 77, 0.2); color: var(--orange); border: 1px solid rgba(255,166,77,0.4); }
+  .sev-major { background: rgba(255, 217, 61, 0.15); color: var(--yellow); border: 1px solid rgba(255,217,61,0.3); }
+  .customer-name { font-weight: 500; color: var(--cyan); font-size: 12px; }
+  .esc-row td { vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -197,6 +203,7 @@
 <div class="tab-bar">
   <div class="tab active" onclick="switchTab('cloud')">Cloud DLP</div>
   <div class="tab" onclick="switchTab('onprem')">DLP On-Prem</div>
+  <div class="tab" onclick="switchTab('escalations')">🚨 Customer Escalations</div>
 </div>
 
 <!-- ==================== CLOUD DLP ==================== -->
@@ -852,6 +859,417 @@
   </div>
 </div>
 
+<!-- ==================== CUSTOMER ESCALATIONS ==================== -->
+<div id="tab-escalations" class="tab-content">
+
+  <div class="summary-bar">
+    <div class="summary-card"><div class="num accent">32</div><div class="lbl">Open EI Escalations</div></div>
+    <div class="summary-card"><div class="num red">1</div><div class="lbl">Showstopper</div></div>
+    <div class="summary-card"><div class="num orange">18</div><div class="lbl">Critical</div></div>
+    <div class="summary-card"><div class="num yellow">13</div><div class="lbl">Major</div></div>
+    <div class="summary-card"><div class="num purple">16</div><div class="lbl">NEO Fix Tickets (label: customer)</div></div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterEscalations(this,'all')">All Severities</button>
+    <button class="filter-btn" onclick="filterEscalations(this,'ss')">🔴 Showstopper</button>
+    <button class="filter-btn" onclick="filterEscalations(this,'critical')">🟠 Critical</button>
+    <button class="filter-btn" onclick="filterEscalations(this,'major')">🟡 Major</button>
+    <button class="collapse-all-btn" onclick="toggleAllSections('tab-escalations')">Collapse All</button>
+  </div>
+
+  <!-- EI Escalation Tickets -->
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">Open Customer Escalations &mdash; EI Tickets (Forcepoint ONE Data Security) <span class="team-badge">32 open</span> <span class="section-chevron">&#9660;</span></div></div>
+  <table>
+    <tr><th>Ticket</th><th>Severity</th><th>Status</th><th>Customer</th><th>Assignee</th><th>Updated</th><th>Summary</th></tr>
+    <!-- Showstopper -->
+    <tr class="esc-row" data-sev="ss">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41601">EI-41601</a></td>
+      <td><span class="sev-badge sev-ss">Showstopper</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">Joyson Safety Systems</td>
+      <td>Chanauria, P.</td><td class="note">Mar 16</td>
+      <td>Eventlog flooded with Schannel TLS errors</td>
+    </tr>
+    <!-- Critical -->
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41852">EI-41852</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">&mdash;</td>
+      <td>Shankar Sen, R.</td><td class="note">Mar 19</td>
+      <td>Alerts not generating (last 2 days)</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41833">EI-41833</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td class="customer-name">Great Eastern Life</td>
+      <td>Matok, A.</td><td class="note">Mar 19</td>
+      <td>Email delivery failed &mdash; rejected by DLP</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41830">EI-41830</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">DEV BACKLOG</span></td>
+      <td class="customer-name">EVERGENT Technologies</td>
+      <td>Salamon, O.</td><td class="note">Mar 17</td>
+      <td>Status Code 500 when logging in DUP console</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41812">EI-41812</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>Manoharan, D.</td><td class="note">Mar 19</td>
+      <td>[URGENT] DLP cloud email notification not working randomly</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41806">EI-41806</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">&mdash;</td>
+      <td>Wang, K.</td><td class="note">Mar 18</td>
+      <td>Unable to logout completely from the portal</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41798">EI-41798</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td class="customer-name">Joyson</td>
+      <td>Flynn, J.</td><td class="note">Mar 16</td>
+      <td>Microsoft modern Authentication showing white page</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41773">EI-41773</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>R, Sunil K.</td><td class="note">Mar 18</td>
+      <td>Business Units do not work in DLP inline email rules</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41759">EI-41759</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">DEV BACKLOG</span></td>
+      <td class="customer-name">DeAcero</td>
+      <td>Salamon, O.</td><td class="note">Mar 17</td>
+      <td>DLPSaaS unable to assign custom app to custom group</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41654">EI-41654</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>R, Sunil K.</td><td class="note">Mar 18</td>
+      <td>DLP incidents show error when viewing triggered data</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41653">EI-41653</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>R, Sunil K.</td><td class="note">Mar 18</td>
+      <td>Business Units do not work in Email DLP cloud</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41640">EI-41640</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>R, Sunil K.</td><td class="note">Mar 19</td>
+      <td>Status, Assignee &amp; Severity fields not displayed inside incidents</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41607">EI-41607</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">Hitachi</td>
+      <td>Mistry, H.</td><td class="note">Mar 18</td>
+      <td>F1A users cannot connect to VPN (IP address issue)</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41589">EI-41589</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">Ministry of Interior Israel</td>
+      <td>Matok, A.</td><td class="note">Mar 17</td>
+      <td>Slow DLP Cloud Portal &amp; permissions issues</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41348">EI-41348</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">Equity Bank</td>
+      <td>Flynn, J.</td><td class="note">Mar 17</td>
+      <td>TLS validation error in F1A agent (Onprem Policy)</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41330">EI-41330</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">CLP</td>
+      <td>Timsina, B.</td><td class="note">Mar 19</td>
+      <td>Cloud Email quarantine action not aligned with DLP policy</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-40555">EI-40555</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td class="customer-name">Banco Centroamericano</td>
+      <td>Thakoor, S.</td><td class="note">Mar 18</td>
+      <td>F1A + on-prem DLP not detecting HTTPS posts</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41854">EI-41854</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">Accenture</td>
+      <td>Gopal, V.</td><td class="note">Mar 17</td>
+      <td>Tricentis Tosca not working with F1E DCEP</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41853">EI-41853</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">&mdash;</td>
+      <td>Sharma, N.</td><td class="note">Mar 18</td>
+      <td>F1A agent not getting uninstalled / reinstalled</td>
+    </tr>
+    <!-- Major -->
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41878">EI-41878</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td class="customer-name">HK Trade Dev. Council</td>
+      <td>Unassigned</td><td class="note">Mar 19</td>
+      <td>Many false positive incidents observed</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41877">EI-41877</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td class="customer-name">&mdash;</td>
+      <td>Adler, S.</td><td class="note">Mar 19</td>
+      <td>Pariman.exe (internal app) causing DLP issues</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41843">EI-41843</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>R, Sunil K.</td><td class="note">Mar 19</td>
+      <td>DLP exception rule not working</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41839">EI-41839</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-review">DEV BACKLOG</span></td>
+      <td class="customer-name">BBVA</td>
+      <td>Matok, A.</td><td class="note">Mar 19</td>
+      <td>DLP Alerts rule filter not working properly</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41774">EI-41774</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">&mdash;</td>
+      <td>Melnik, A.</td><td class="note">Mar 11</td>
+      <td>DLP Cloud Portal &mdash; Error 500 after refreshing console</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41755">EI-41755</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-review">DEV BACKLOG</span></td>
+      <td class="customer-name">&mdash;</td>
+      <td>Matok, A.</td><td class="note">Mar 17</td>
+      <td>Cloud DLP not removing apps deleted from CASB</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41717">EI-41717</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-review">DEV BACKLOG</span></td>
+      <td class="customer-name">&mdash; (POC)</td>
+      <td>Salamon, O.</td><td class="note">Mar 19</td>
+      <td>Files Transferred report missing from DUP portal</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41483">EI-41483</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">Intelligent Processing Solutions</td>
+      <td>Matok, A.</td><td class="note">Mar 17</td>
+      <td>Missing Destination Domain Details in some alerts</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-41261">EI-41261</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">Semco / Lee County Electric</td>
+      <td>R, NaveenK.</td><td class="note">Mar 13</td>
+      <td>Error adding computer in profile version 25.0</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-40988">EI-40988</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-review">INFO NEEDED</span></td>
+      <td class="customer-name">Accenture China</td>
+      <td>Gopal, V.</td><td class="note">Mar 18</td>
+      <td>Unable to uninstall corrupted F1A/Neo endpoint</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-40829">EI-40829</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN DEV</span></td>
+      <td class="customer-name">JSS (F1A)</td>
+      <td>Adler, S.</td><td class="note">Mar 9</td>
+      <td>zwfw.safe.gov.cn opening abnormal</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-40150">EI-40150</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td class="customer-name">CPX</td>
+      <td>Melnik, A.</td><td class="note">Mar 18</td>
+      <td>DUP not showing user Full Name</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/EI-40006">EI-40006</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td class="customer-name">SinoPac Bank</td>
+      <td>Thakoor, S.</td><td class="note">Mar 16</td>
+      <td>Neo on macOS allows blocked websites</td>
+    </tr>
+  </table>
+  </div>
+
+  <!-- NEO Fix Tickets with customer label -->
+  <div class="section-group">
+  <div class="section-title"><div class="section-header" onclick="toggleSection(this)">R&amp;D Fix Tickets &mdash; NEO Project (label: customer) <span class="team-badge">16 open</span> <span class="section-chevron">&#9660;</span></div></div>
+  <table>
+    <tr><th>Ticket</th><th>Severity</th><th>Status</th><th>Assignee</th><th>Updated</th><th>Summary</th></tr>
+    <!-- Showstopper -->
+    <tr class="esc-row" data-sev="ss">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19650">NEO-19650</a></td>
+      <td><span class="sev-badge sev-ss">Showstopper</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Mark, A.</td><td class="note">Mar 18</td>
+      <td>[BBVA] DLP Email Notification not working randomly</td>
+    </tr>
+    <tr class="esc-row" data-sev="ss">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19564">NEO-19564</a></td>
+      <td><span class="sev-badge sev-ss">Showstopper</span></td>
+      <td><span class="status-badge status-review">READY TO IMPL</span></td>
+      <td>Salti, H.</td><td class="note">Mar 18</td>
+      <td>[Joyson] Eventlog flooded with Schannel TLS errors</td>
+    </tr>
+    <tr class="esc-row" data-sev="ss">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19529">NEO-19529</a></td>
+      <td><span class="sev-badge sev-ss">Showstopper</span></td>
+      <td><span class="status-badge status-review">IN REFINEMENT</span></td>
+      <td>Hadar, E.</td><td class="note">Mar 19</td>
+      <td>[BBVA] Rule not matched using Domain or Business Unit in Destination</td>
+    </tr>
+    <tr class="esc-row" data-sev="ss">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19122">NEO-19122</a></td>
+      <td><span class="sev-badge sev-ss">Showstopper</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td>Wolf, T.</td><td class="note">Mar 18</td>
+      <td>[BBVA] Cannot see triggered data for DLP exceptions</td>
+    </tr>
+    <!-- Critical -->
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19667">NEO-19667</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Hazan, S.</td><td class="note">Mar 16</td>
+      <td>Status Code 500 when logging or working in DUP console</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19607">NEO-19607</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Hazan, S.</td><td class="note">Mar 12</td>
+      <td>Cannot associate custom Endpoint Application with Application Group</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19534">NEO-19534</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Matok, A.</td><td class="note">Mar 17</td>
+      <td>[Ministry of Interior Israel] DLP Cloud Portal access issues</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19464">NEO-19464</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Hazan, S.</td><td class="note">Feb 11</td>
+      <td>Display and Search of User Identified on Alert</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-7401">NEO-7401</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Ghammashi, W.</td><td class="note">Feb 2025</td>
+      <td>[KNOWLES ELECTRONICS] Neo Web for macOS failing</td>
+    </tr>
+    <tr class="esc-row" data-sev="critical">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-5222">NEO-5222</a></td>
+      <td><span class="sev-badge sev-critical">Critical</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Aliev, A.</td><td class="note">Feb 2025</td>
+      <td>Map local users to UPN</td>
+    </tr>
+    <!-- Major -->
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19693">NEO-19693</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Unassigned</td><td class="note">Mar 17</td>
+      <td>[POC] Files Transferred report missing from DUP portal</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19692">NEO-19692</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Wolf, T.</td><td class="note">Mar 17</td>
+      <td>[BBVA] DLP Alerts rule filter not working properly</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19641">NEO-19641</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Hazan, S.</td><td class="note">Mar 16</td>
+      <td>Cloud DLP not removing apps deleted from CASB</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19603">NEO-19603</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-todo">OPEN</span></td>
+      <td>Salamon, O.</td><td class="note">Mar 5</td>
+      <td>Update email settings in DLP cloud failed</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19528">NEO-19528</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-progress">IN PROGRESS</span></td>
+      <td>Mark, A.</td><td class="note">Mar 18</td>
+      <td>[BBVA] Status, Assignee &amp; Severity fields not shown in Incident Details</td>
+    </tr>
+    <tr class="esc-row" data-sev="major">
+      <td><a href="https://forcepoint.atlassian.net/browse/NEO-19451">NEO-19451</a></td>
+      <td><span class="sev-badge sev-major">Major</span></td>
+      <td><span class="status-badge status-blocked">BLOCKED</span></td>
+      <td>Matok, A.</td><td class="note">Mar 18</td>
+      <td>Missing Destination Domain Details in Some Alerts</td>
+    </tr>
+  </table>
+  </div>
+
+</div>
+
 <script>
 function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -862,6 +1280,14 @@ function switchTab(tab) {
 
 function filterCloud(mode) { applyFilter('tab-cloud', mode); }
 function filterOnprem(mode) { applyFilter('tab-onprem', mode); }
+
+function filterEscalations(btn, sev) {
+  document.querySelectorAll('#tab-escalations .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#tab-escalations .esc-row').forEach(row => {
+    row.style.display = (sev === 'all' || row.dataset.sev === sev) ? '' : 'none';
+  });
+}
 
 function applyFilter(tabId, mode) {
   const tab = document.getElementById(tabId);
