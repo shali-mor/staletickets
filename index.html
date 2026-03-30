@@ -38,20 +38,20 @@ header {
 .site-title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
 .as-of { font-size: 12px; color: var(--text-dim); }
 
-/* Settings button */
-.settings-btn {
+/* Header buttons */
+.hdr-btn {
   background: none;
   border: 1px solid var(--border);
   border-radius: 6px;
   color: var(--text-dim);
   cursor: pointer;
-  font-size: 14px;
-  padding: 4px 8px;
+  font-size: 12px;
+  padding: 5px 10px;
   line-height: 1;
   transition: border-color 0.15s, color 0.15s;
 }
-.settings-btn:hover { border-color: #4a5080; color: var(--text); }
-.settings-btn.active { border-color: var(--accent); color: var(--accent); }
+.hdr-btn:hover { border-color: #4a5080; color: var(--text); }
+.hdr-btn.active { border-color: var(--accent); color: var(--accent); }
 
 /* Settings panel */
 .settings-panel {
@@ -66,57 +66,28 @@ header {
 .settings-panel.hidden { display: none; }
 .settings-group { display: flex; flex-direction: column; gap: 8px; }
 .settings-group-title {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text-dim);
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-dim);
 }
 .settings-fields { display: flex; flex-wrap: wrap; gap: 12px; }
 .settings-field { display: flex; flex-direction: column; gap: 3px; }
 .settings-field label { font-size: 10px; color: var(--text-dim); }
 .settings-field input[type="number"] {
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--text);
-  font-size: 13px;
-  padding: 5px 8px;
-  width: 68px;
-  outline: none;
-  transition: border-color 0.15s;
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text); font-size: 13px; padding: 5px 8px; width: 68px;
+  outline: none; transition: border-color 0.15s;
 }
 .settings-field input[type="number"]:focus { border-color: var(--accent); }
-.settings-divider {
-  width: 1px;
-  align-self: stretch;
-  background: var(--border);
-  margin: 0 4px;
-}
+.settings-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
 .settings-apply {
-  background: var(--accent);
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 7px 16px;
-  height: fit-content;
-  align-self: flex-end;
+  background: var(--accent); border: none; border-radius: 6px; color: #fff;
+  cursor: pointer; font-size: 12px; font-weight: 600; padding: 7px 16px;
   transition: opacity 0.15s;
 }
 .settings-apply:hover { opacity: 0.85; }
 .settings-reset {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-dim);
-  cursor: pointer;
-  font-size: 12px;
-  padding: 6px 12px;
-  height: fit-content;
-  align-self: flex-end;
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-dim); cursor: pointer; font-size: 12px; padding: 6px 12px;
   transition: border-color 0.15s;
 }
 .settings-reset:hover { border-color: #4a5080; color: var(--text); }
@@ -132,77 +103,43 @@ main {
 
 /* Section blocks */
 .section-block {
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  padding: 14px 16px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  border-radius: 12px; border: 1px solid var(--border);
+  padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px;
 }
-.section-block.cloud {
-  border-left: 3px solid var(--cloud-accent);
-  background: rgba(56, 189, 248, 0.025);
-}
-.section-block.onprem {
-  border-left: 3px solid var(--onprem-accent);
-  background: rgba(245, 158, 11, 0.025);
-}
+.section-block.cloud  { border-left: 3px solid var(--cloud-accent);  background: rgba(56,189,248,0.025); }
+.section-block.onprem { border-left: 3px solid var(--onprem-accent); background: rgba(245,158,11,0.025); }
 
 /* Row labels */
-.row-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 2px;
-}
-.row-label-text {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  white-space: nowrap;
-}
-.row-label.cloud .row-label-text { color: var(--cloud-accent); }
-.row-label.cloud .row-label-line { background: var(--cloud-accent); opacity: 0.25; }
+.row-label { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+.row-label-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; white-space: nowrap; }
+.row-label.cloud  .row-label-text { color: var(--cloud-accent); }
+.row-label.cloud  .row-label-line { background: var(--cloud-accent);  opacity: 0.25; }
 .row-label.onprem .row-label-text { color: var(--onprem-accent); }
 .row-label.onprem .row-label-line { background: var(--onprem-accent); opacity: 0.25; }
-.row-label-line {
-  flex: 1;
-  height: 1px;
-}
+.row-label-line { flex: 1; height: 1px; }
 
 /* Card row */
-.cards-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
+.cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 
 /* Card */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  text-decoration: none;
-  color: inherit;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit;
 }
-.card:hover {
-  border-color: #4a5080;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-}
+.card:hover { border-color: #4a5080; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
 .card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 18px 0;
+  display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0;
 }
 .card-title { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+.card-top-actions { display: flex; align-items: center; gap: 6px; }
 .card-arrow { font-size: 13px; color: var(--text-dim); }
+.card-edit-btn {
+  background: none; border: none; color: var(--text-dim); cursor: pointer;
+  font-size: 11px; padding: 2px 5px; border-radius: 4px; line-height: 1;
+  transition: color 0.15s, background 0.15s;
+}
+.card-edit-btn:hover { color: var(--text); background: var(--surface2); }
 .card-body { padding: 12px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
 
 .loading { color: var(--text-dim); font-size: 12px; padding: 30px 0; text-align: center; }
@@ -211,13 +148,9 @@ main {
 .score-section { display: flex; align-items: center; gap: 14px; }
 .ring-wrap { position: relative; flex-shrink: 0; width: 96px; height: 96px; }
 .ring-wrap svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
-.ring-center {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-}
+.ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
 .ring-score { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; line-height: 1; }
 .ring-label { font-size: 8px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.8px; }
-
 .score-info { flex: 1; min-width: 0; }
 .score-headline { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.1; }
 .score-sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; line-height: 1.5; }
@@ -243,6 +176,135 @@ main {
 .c-orange { color: var(--orange); }
 .c-red    { color: var(--red); }
 
+/* ── Editor modal ──────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 32px 20px; overflow-y: auto;
+}
+.modal-overlay.hidden { display: none; }
+.editor-modal {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  width: 100%; max-width: 1240px;
+  display: flex; flex-direction: column;
+  max-height: calc(100vh - 64px);
+}
+.editor-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px;
+}
+.editor-title { font-size: 14px; font-weight: 700; }
+.editor-override-badge {
+  font-size: 10px; background: rgba(108,140,255,0.15); color: var(--accent);
+  border-radius: 4px; padding: 2px 7px; font-weight: 700; letter-spacing: 0.5px;
+}
+.editor-close {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-dim); cursor: pointer; font-size: 13px; padding: 4px 9px;
+  margin-left: auto; transition: border-color 0.15s; line-height: 1;
+}
+.editor-close:hover { border-color: #4a5080; color: var(--text); }
+.editor-controls {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
+}
+.editor-search {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-size: 12px; padding: 6px 10px; width: 200px; outline: none;
+  transition: border-color 0.15s;
+}
+.editor-search:focus { border-color: var(--accent); }
+.editor-filter {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-size: 12px; padding: 6px 8px; outline: none; cursor: pointer;
+}
+.editor-count { font-size: 11px; color: var(--text-dim); }
+.editor-add-btn {
+  margin-left: auto; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); cursor: pointer; font-size: 12px; padding: 6px 12px;
+  transition: border-color 0.15s;
+}
+.editor-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+/* Add-row inline form */
+.add-row-panel {
+  padding: 10px 20px; border-bottom: 1px solid var(--border);
+  background: rgba(108,140,255,0.04); flex-shrink: 0; display: none;
+  flex-wrap: wrap; gap: 8px; align-items: flex-end;
+}
+.add-row-panel.visible { display: flex; }
+.add-field { display: flex; flex-direction: column; gap: 3px; }
+.add-field label { font-size: 10px; color: var(--text-dim); }
+.add-field input, .add-field select {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text); font-size: 12px; padding: 5px 8px; outline: none;
+}
+.add-field input:focus, .add-field select:focus { border-color: var(--accent); }
+.add-confirm {
+  background: var(--accent); border: none; border-radius: 6px; color: #fff;
+  cursor: pointer; font-size: 12px; font-weight: 600; padding: 6px 14px;
+  align-self: flex-end; transition: opacity 0.15s;
+}
+.add-confirm:hover { opacity: 0.85; }
+.add-cancel {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-dim); cursor: pointer; font-size: 12px; padding: 6px 10px;
+  align-self: flex-end; transition: border-color 0.15s;
+}
+.add-cancel:hover { border-color: #4a5080; }
+/* Table */
+.editor-table-wrap { overflow-y: auto; flex: 1; min-height: 0; }
+.editor-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.editor-table th {
+  position: sticky; top: 0; background: var(--surface);
+  border-bottom: 1px solid var(--border); padding: 8px 10px; text-align: left;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--text-dim); z-index: 1;
+}
+.editor-table td { padding: 5px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.editor-table tr.hidden-row { display: none; }
+.editor-table tr:hover td { background: rgba(255,255,255,0.02); }
+.td-key a { color: var(--accent); font-size: 11px; font-weight: 600; text-decoration: none; }
+.td-key a:hover { text-decoration: underline; }
+.td-dim { color: var(--text-dim); font-size: 11px; }
+.ed-input {
+  background: transparent; border: 1px solid transparent; border-radius: 4px;
+  color: var(--text); font-size: 12px; padding: 3px 6px; width: 100%; outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ed-input:focus, .ed-input:hover { border-color: var(--border); background: var(--surface2); }
+.ed-input:focus { border-color: var(--accent) !important; background: var(--bg); }
+.ed-select {
+  background: transparent; border: 1px solid transparent; border-radius: 4px;
+  color: var(--text); font-size: 12px; padding: 3px 6px; outline: none; cursor: pointer;
+  width: 100%; transition: border-color 0.15s, background 0.15s;
+}
+.ed-select:focus, .ed-select:hover { border-color: var(--border); background: var(--surface2); }
+.ed-select:focus { border-color: var(--accent) !important; }
+.ed-del {
+  background: none; border: none; color: var(--text-dim); cursor: pointer;
+  font-size: 14px; padding: 2px 6px; border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+.ed-del:hover { color: var(--red); background: rgba(239,68,68,0.1); }
+/* Footer */
+.editor-footer {
+  display: flex; align-items: center; padding: 12px 20px;
+  border-top: 1px solid var(--border); flex-shrink: 0; gap: 8px;
+}
+.ed-footer-left { display: flex; gap: 8px; flex: 1; }
+.ed-btn-ghost {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-dim); cursor: pointer; font-size: 12px; padding: 6px 12px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.ed-btn-ghost:hover { border-color: #4a5080; color: var(--text); }
+.ed-btn-save {
+  background: var(--accent); border: none; border-radius: 6px; color: #fff;
+  cursor: pointer; font-size: 12px; font-weight: 600; padding: 7px 20px;
+  transition: opacity 0.15s;
+}
+.ed-btn-save:hover { opacity: 0.85; }
+
 @media (max-width: 960px) {
   .cards-row { grid-template-columns: 1fr; }
 }
@@ -254,44 +316,27 @@ main {
   <div class="site-title">DLP Program Dashboard</div>
   <div style="display:flex;align-items:center;gap:10px">
     <div class="as-of" id="hdr-date"></div>
-    <button class="settings-btn" id="settings-toggle" title="Configure SLA thresholds">⚙ SLA</button>
+    <button class="hdr-btn" id="settings-toggle" title="Configure SLA thresholds">&#x2699; SLA</button>
   </div>
 </header>
 
+<!-- SLA Settings panel -->
 <div id="settings-panel" class="settings-panel hidden">
   <div class="settings-group">
     <div class="settings-group-title">Escalation — Penalty Weights</div>
     <div class="settings-fields">
-      <div class="settings-field">
-        <label>Showstopper</label>
-        <input type="number" id="sla-ss-penalty" min="1" max="50" step="1">
-      </div>
-      <div class="settings-field">
-        <label>Critical</label>
-        <input type="number" id="sla-crit-penalty" min="0.5" max="20" step="0.5">
-      </div>
-      <div class="settings-field">
-        <label>Major</label>
-        <input type="number" id="sla-maj-penalty" min="0.5" max="10" step="0.5">
-      </div>
+      <div class="settings-field"><label>Showstopper</label><input type="number" id="sla-ss-penalty" min="1" max="50" step="1"></div>
+      <div class="settings-field"><label>Critical</label><input type="number" id="sla-crit-penalty" min="0.5" max="20" step="0.5"></div>
+      <div class="settings-field"><label>Major</label><input type="number" id="sla-maj-penalty" min="0.5" max="10" step="0.5"></div>
     </div>
   </div>
   <div class="settings-divider"></div>
   <div class="settings-group">
     <div class="settings-group-title">Stalled Items — Thresholds</div>
     <div class="settings-fields">
-      <div class="settings-field">
-        <label>Stalled (days)</label>
-        <input type="number" id="sla-stall-days" min="7" max="180" step="1">
-      </div>
-      <div class="settings-field">
-        <label>Stale warning (days)</label>
-        <input type="number" id="sla-stale-warn" min="30" max="365" step="1">
-      </div>
-      <div class="settings-field">
-        <label>Stale critical (days)</label>
-        <input type="number" id="sla-stale-crit" min="60" max="730" step="1">
-      </div>
+      <div class="settings-field"><label>Stalled (days)</label><input type="number" id="sla-stall-days" min="7" max="180" step="1"></div>
+      <div class="settings-field"><label>Stale warning (days)</label><input type="number" id="sla-stale-warn" min="30" max="365" step="1"></div>
+      <div class="settings-field"><label>Stale critical (days)</label><input type="number" id="sla-stale-crit" min="60" max="730" step="1"></div>
     </div>
   </div>
   <div style="margin-left:auto;display:flex;gap:8px;align-items:flex-end">
@@ -309,15 +354,21 @@ main {
     </div>
     <div class="cards-row">
       <a class="card" href="escalation-dashboard.html">
-        <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">↗</div></div>
+        <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">&#x2197;</div></div>
         <div class="card-body" id="cloud-esc-body"><div class="loading">Loading…</div></div>
       </a>
       <a class="card" href="pi-dashboard.html">
-        <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">↗</div></div>
+        <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">&#x2197;</div></div>
         <div class="card-body" id="cloud-pi-body"><div class="loading">Loading…</div></div>
       </a>
       <a class="card" href="stalled.html?product=cloud">
-        <div class="card-top"><div class="card-title">Stalled Items</div><div class="card-arrow">↗</div></div>
+        <div class="card-top">
+          <div class="card-title">Stalled Items</div>
+          <div class="card-top-actions">
+            <button class="card-edit-btn" title="Edit stalled items" onclick="event.preventDefault();event.stopPropagation();openStalledEditor()">&#x270F;</button>
+            <div class="card-arrow">&#x2197;</div>
+          </div>
+        </div>
         <div class="card-body" id="cloud-stall-body"><div class="loading">Loading…</div></div>
       </a>
     </div>
@@ -331,46 +382,111 @@ main {
     </div>
     <div class="cards-row">
       <a class="card" href="escalation-dashboard.html">
-        <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">↗</div></div>
+        <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">&#x2197;</div></div>
         <div class="card-body" id="onprem-esc-body"><div class="loading">Loading…</div></div>
       </a>
       <a class="card" href="pi-dashboard.html">
-        <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">↗</div></div>
+        <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">&#x2197;</div></div>
         <div class="card-body" id="onprem-pi-body"><div class="loading">Loading…</div></div>
       </a>
       <a class="card" href="stalled.html?product=onprem">
-        <div class="card-top"><div class="card-title">Stalled Items</div><div class="card-arrow">↗</div></div>
+        <div class="card-top">
+          <div class="card-title">Stalled Items</div>
+          <div class="card-top-actions">
+            <button class="card-edit-btn" title="Edit stalled items" onclick="event.preventDefault();event.stopPropagation();openStalledEditor()">&#x270F;</button>
+            <div class="card-arrow">&#x2197;</div>
+          </div>
+        </div>
         <div class="card-body" id="onprem-stall-body"><div class="loading">Loading…</div></div>
       </a>
     </div>
   </div>
 </main>
 
+<!-- Stalled Items Editor Modal -->
+<div id="editor-overlay" class="modal-overlay hidden">
+  <div class="editor-modal">
+    <div class="editor-header">
+      <div class="editor-title">&#x270F; Stalled Items</div>
+      <span class="editor-override-badge hidden" id="editor-override-badge">LOCAL EDITS</span>
+      <button class="editor-close" id="editor-close">&#x2715; Close</button>
+    </div>
+    <div class="editor-controls">
+      <input class="editor-search" id="editor-search" type="text" placeholder="Search key or summary…">
+      <select class="editor-filter" id="editor-filter">
+        <option value="">All projects</option>
+        <option value="cloud">Cloud DLP (NEO, DPS)</option>
+        <option value="onprem">On-Prem DLP (DLP, DSA, FSM)</option>
+      </select>
+      <span class="editor-count" id="editor-count"></span>
+      <button class="editor-add-btn" id="editor-add-btn">+ Add Item</button>
+    </div>
+    <div class="add-row-panel" id="add-row-panel">
+      <div class="add-field"><label>Key *</label><input id="af-key" placeholder="NEO-12345" style="width:100px"></div>
+      <div class="add-field"><label>Summary *</label><input id="af-summary" placeholder="Issue summary…" style="width:260px"></div>
+      <div class="add-field"><label>Project</label>
+        <select id="af-project">
+          <option>NEO</option><option>DPS</option><option>DLP</option><option>DSA</option><option>FSM</option>
+        </select>
+      </div>
+      <div class="add-field"><label>Assignee</label><input id="af-assignee" placeholder="Last, First" style="width:120px"></div>
+      <div class="add-field"><label>Team</label><input id="af-team" placeholder="Manager name" style="width:120px"></div>
+      <div class="add-field"><label>Status</label>
+        <select id="af-status">
+          <option>OPEN</option><option>IN PROGRESS</option><option>IN REFINEMENT</option>
+          <option>READY TO IMPLEMENT</option><option>BLOCKED</option>
+        </select>
+      </div>
+      <div class="add-field"><label>Priority</label>
+        <select id="af-priority"><option>Critical</option><option>Major</option><option>Minor</option><option>Showstopper</option></select>
+      </div>
+      <div class="add-field"><label>Type</label>
+        <select id="af-type"><option>Bug</option><option>Task</option><option>Story</option><option>Epic</option></select>
+      </div>
+      <div class="add-field"><label>Updated</label><input id="af-updated" type="date" style="width:120px"></div>
+      <button class="add-confirm" id="add-confirm">Add</button>
+      <button class="add-cancel" id="add-cancel">Cancel</button>
+    </div>
+    <div class="editor-table-wrap">
+      <table class="editor-table">
+        <thead>
+          <tr>
+            <th style="width:90px">Key</th>
+            <th>Summary</th>
+            <th style="width:50px">Proj</th>
+            <th style="width:130px">Team</th>
+            <th style="width:150px">Status</th>
+            <th style="width:110px">Priority</th>
+            <th style="width:88px">Updated</th>
+            <th style="width:36px"></th>
+          </tr>
+        </thead>
+        <tbody id="editor-tbody"></tbody>
+      </table>
+    </div>
+    <div class="editor-footer">
+      <div class="ed-footer-left">
+        <button class="ed-btn-ghost" id="ed-export">&#x2398; Export JSON</button>
+        <button class="ed-btn-ghost" id="ed-reset" style="color:var(--red);border-color:rgba(239,68,68,0.3)">Reset to file</button>
+      </div>
+      <button class="ed-btn-save" id="ed-save">Save &amp; Apply</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ─── SLA Config ───────────────────────────────────────────────────────────────
 
 const SLA_KEY = 'dlp-sla-v1';
-const SLA_DEFAULTS = {
-  ssPenalty:  10,
-  critPenalty: 4,
-  majPenalty:  1.5,
-  stallDays:  30,
-  staleWarn:  90,
-  staleCrit: 180
-};
+const SLA_DEFAULTS = { ssPenalty: 10, critPenalty: 4, majPenalty: 1.5, stallDays: 30, staleWarn: 90, staleCrit: 180 };
 
 function loadSLA() {
   try { return Object.assign({}, SLA_DEFAULTS, JSON.parse(localStorage.getItem(SLA_KEY) || '{}')); }
   catch { return Object.assign({}, SLA_DEFAULTS); }
 }
-
-function saveSLA(sla) {
-  localStorage.setItem(SLA_KEY, JSON.stringify(sla));
-}
+function saveSLA(sla) { localStorage.setItem(SLA_KEY, JSON.stringify(sla)); }
 
 let SLA = loadSLA();
-
-// ─── Settings panel ───────────────────────────────────────────────────────────
 
 function populateInputs(sla) {
   document.getElementById('sla-ss-penalty').value   = sla.ssPenalty;
@@ -380,17 +496,13 @@ function populateInputs(sla) {
   document.getElementById('sla-stale-warn').value   = sla.staleWarn;
   document.getElementById('sla-stale-crit').value   = sla.staleCrit;
 }
-
 populateInputs(SLA);
 
 document.getElementById('settings-toggle').addEventListener('click', function() {
-  const panel = document.getElementById('settings-panel');
-  const btn   = this;
-  const hidden = panel.classList.toggle('hidden');
-  btn.classList.toggle('active', !hidden);
+  const hidden = document.getElementById('settings-panel').classList.toggle('hidden');
+  this.classList.toggle('active', !hidden);
   if (!hidden) populateInputs(SLA);
 });
-
 document.getElementById('settings-apply').addEventListener('click', function() {
   SLA = {
     ssPenalty:   parseFloat(document.getElementById('sla-ss-penalty').value)   || SLA_DEFAULTS.ssPenalty,
@@ -405,7 +517,6 @@ document.getElementById('settings-apply').addEventListener('click', function() {
   document.getElementById('settings-toggle').classList.remove('active');
   refresh();
 });
-
 document.getElementById('settings-reset').addEventListener('click', function() {
   SLA = Object.assign({}, SLA_DEFAULTS);
   saveSLA(SLA);
@@ -429,30 +540,26 @@ function scoreClass(s) {
   if (s >= 30) return 'c-orange';
   return 'c-red';
 }
-
 function ring(score, label) {
   const R = 40, SW = 9, SZ = 96;
   const circ = 2 * Math.PI * R;
   const fill = (Math.max(0, Math.min(100, score)) / 100) * circ;
   const col  = scoreColor(score);
-  return `
-    <div class="ring-wrap">
-      <svg width="${SZ}" height="${SZ}" viewBox="0 0 ${SZ} ${SZ}">
-        <circle cx="48" cy="48" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="${SW}"/>
-        <circle cx="48" cy="48" r="${R}" fill="none" stroke="${col}" stroke-width="${SW}"
-          stroke-dasharray="${fill.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"/>
-      </svg>
-      <div class="ring-center">
-        <div class="ring-score" style="color:${col}">${Math.round(score)}%</div>
-        <div class="ring-label">${label}</div>
-      </div>
-    </div>`;
+  return `<div class="ring-wrap">
+    <svg width="${SZ}" height="${SZ}" viewBox="0 0 ${SZ} ${SZ}">
+      <circle cx="48" cy="48" r="${R}" fill="none" stroke="var(--surface2)" stroke-width="${SW}"/>
+      <circle cx="48" cy="48" r="${R}" fill="none" stroke="${col}" stroke-width="${SW}"
+        stroke-dasharray="${fill.toFixed(1)} ${circ.toFixed(1)}" stroke-linecap="round"/>
+    </svg>
+    <div class="ring-center">
+      <div class="ring-score" style="color:${col}">${Math.round(score)}%</div>
+      <div class="ring-label">${label}</div>
+    </div>
+  </div>`;
 }
-
 function stat(val, label, cls) {
   return `<div class="stat"><div class="stat-val${cls ? ' ' + cls : ''}">${val}</div><div class="stat-lbl">${label}</div></div>`;
 }
-
 function bar(label, pct, col) {
   const p = Math.min(100, Math.max(0, pct));
   return `<div class="bar-row">
@@ -461,9 +568,11 @@ function bar(label, pct, col) {
     <div class="bar-val" style="color:${col}">${Math.round(p)}</div>
   </div>`;
 }
-
 function isOpen(s) {
   return !['closed','resolved','done','fixed'].includes((s||'').toLowerCase());
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ─── Escalation ───────────────────────────────────────────────────────────────
@@ -477,25 +586,20 @@ async function loadEscalation() {
     const onpremRaw = html.match(/const onpremData = (\[[\s\S]*?\n\]);/);
     if (!cloudRaw || !onpremRaw) return;
     // eslint-disable-next-line no-new-func
-    _escData = {
-      cloud:  new Function('return ' + cloudRaw[1])(),
-      onprem: new Function('return ' + onpremRaw[1])(),
-    };
+    _escData = { cloud: new Function('return ' + cloudRaw[1])(), onprem: new Function('return ' + onpremRaw[1])() };
     const dateM = html.match(/Data as of: (\d{4}-\d{2}-\d{2})/);
     if (dateM) document.getElementById('hdr-date').textContent = 'Data as of ' + dateM[1];
   }
-
   function analyze(data) {
     const open  = data.filter(t => isOpen(t.status));
     const ss    = open.filter(t => t.priority === 'Showstopper').length;
     const crit  = open.filter(t => t.priority === 'Critical').length;
     const maj   = open.filter(t => t.priority === 'Major').length;
-    const penalty   = ss * SLA.ssPenalty + crit * SLA.critPenalty + maj * SLA.majPenalty;
-    const closed    = data.length - open.length;
+    const penalty    = ss * SLA.ssPenalty + crit * SLA.critPenalty + maj * SLA.majPenalty;
+    const closed     = data.length - open.length;
     const closurePct = Math.round(closed / Math.max(1, data.length) * 100);
     return { score: Math.max(0, 100 - penalty), open: open.length, total: data.length, closed, closurePct, ss, crit, maj };
   }
-
   renderEscCard('cloud-esc-body',  analyze(_escData.cloud));
   renderEscCard('onprem-esc-body', analyze(_escData.onprem));
 }
@@ -511,10 +615,10 @@ function renderEscCard(bodyId, d) {
     </div>
     <hr class="div">
     <div class="stat-grid">
-      ${stat(d.ss,   'Showstoppers', d.ss > 0   ? 'c-red'    : 'c-green')}
-      ${stat(d.crit, 'Criticals',   d.crit > 5  ? 'c-red'    : d.crit > 0 ? 'c-orange' : 'c-green')}
-      ${stat(d.open, 'Open',        d.open > 5  ? 'c-orange' : 'c-yellow')}
-      ${stat(d.closed,'Resolved',   'c-green')}
+      ${stat(d.ss,    'Showstoppers', d.ss > 0   ? 'c-red'    : 'c-green')}
+      ${stat(d.crit,  'Criticals',   d.crit > 5  ? 'c-red'    : d.crit > 0 ? 'c-orange' : 'c-green')}
+      ${stat(d.open,  'Open',        d.open > 5  ? 'c-orange' : 'c-yellow')}
+      ${stat(d.closed,'Resolved',    'c-green')}
     </div>`;
 }
 
@@ -522,32 +626,22 @@ function renderEscCard(bodyId, d) {
 
 async function loadPI() {
   const html = await fetch('pi-dashboard.html').then(r => r.text());
-
   function countBadgeClass(section, cls) {
-    return [...section.matchAll(/class="status-badge (status-[^"]+)"/g)]
-      .filter(m => m[1] === cls).length;
+    return [...section.matchAll(/class="status-badge (status-[^"]+)"/g)].filter(m => m[1] === cls).length;
   }
-
   const cloudSection  = html.slice(html.indexOf('id="tab-cloud"'),   html.indexOf('id="tab-onprem"'));
   const onpremSection = html.slice(html.indexOf('id="tab-onprem"'));
-
   function analyzePI(section) {
-    const done     = countBadgeClass(section, 'status-done');
-    const review   = countBadgeClass(section, 'status-review');
-    const progress = countBadgeClass(section, 'status-progress');
-    const todo     = countBadgeClass(section, 'status-todo');
-    const blocked  = countBadgeClass(section, 'status-blocked');
-    const deferred = countBadgeClass(section, 'status-deferred');
+    const done = countBadgeClass(section, 'status-done'),   review   = countBadgeClass(section, 'status-review');
+    const progress = countBadgeClass(section, 'status-progress'), todo = countBadgeClass(section, 'status-todo');
+    const blocked  = countBadgeClass(section, 'status-blocked'),  deferred = countBadgeClass(section, 'status-deferred');
     const total    = done + review + progress + todo + blocked + deferred;
     const active   = Math.max(1, total - deferred - blocked);
     const inFlight = review + progress;
-    const effective = done * 100 + review * 75 + progress * 40;
-    const score    = Math.min(100, Math.round(effective / active));
+    const score    = Math.min(100, Math.round((done * 100 + review * 75 + progress * 40) / active));
     const pctDone  = Math.round(done / active * 100);
-    const pctFlight = Math.round(inFlight / active * 100);
-    return { done, review, progress, todo, blocked, deferred, total, active, inFlight, score, pctDone, pctFlight };
+    return { done, review, progress, todo, blocked, deferred, total, active, inFlight, score, pctDone };
   }
-
   renderPICard('cloud-pi-body',  analyzePI(cloudSection));
   renderPICard('onprem-pi-body', analyzePI(onpremSection));
 }
@@ -564,83 +658,256 @@ function renderPICard(bodyId, d) {
     </div>
     <hr class="div">
     <div class="stat-grid">
-      ${stat(d.done,      'Done',          'c-green')}
-      ${stat(d.inFlight,  'In Flight',     'c-yellow')}
-      ${stat(d.todo,      'Not Started',   d.todo > 5 ? 'c-orange' : '')}
-      ${stat(defBlocked,  'Def/Blocked',   defBlocked > 2 ? 'c-red' : 'c-orange')}
+      ${stat(d.done,     'Done',        'c-green')}
+      ${stat(d.inFlight, 'In Flight',   'c-yellow')}
+      ${stat(d.todo,     'Not Started', d.todo > 5 ? 'c-orange' : '')}
+      ${stat(defBlocked, 'Def/Blocked', defBlocked > 2 ? 'c-red' : 'c-orange')}
     </div>`;
 }
 
 // ─── Stalled Items ────────────────────────────────────────────────────────────
 
 const CLOUD_PROJS = new Set(['NEO', 'DPS']);
+const STALLED_OVERRIDE_KEY = 'dlp-stalled-override-v1';
 
-let _stalledAll = null;
+let _stalledAll  = null;   // source data (file or override)
+let _stalledFile = null;   // always the raw file data (for Reset)
 
 async function loadStalled() {
-  if (!_stalledAll) {
+  // Load file data once
+  if (!_stalledFile) {
     const html  = await fetch('stalled.html').then(r => r.text());
     const match = html.match(/const ISSUES = (\[[\s\S]*?\]);/);
     if (!match) return;
-    _stalledAll = JSON.parse(match[1]);
+    _stalledFile = JSON.parse(match[1]);
   }
+  // Use localStorage override if present
+  const override = localStorage.getItem(STALLED_OVERRIDE_KEY);
+  _stalledAll = override ? JSON.parse(override) : _stalledFile;
 
+  renderStalledCards();
+}
+
+function renderStalledCards() {
   const cloud  = _stalledAll.filter(i => CLOUD_PROJS.has(i.project));
   const onprem = _stalledAll.filter(i => !CLOUD_PROJS.has(i.project));
-
   renderStalledCard('cloud-stall-body',  cloud);
   renderStalledCard('onprem-stall-body', onprem);
 }
 
 function renderStalledCard(bodyId, issues) {
-  const today    = new Date('2026-03-30');
-  const ageD     = d => (today - new Date(d)) / 86400000;
-  const total    = issues.length;
-  const ss       = issues.filter(i => i.priority === 'Showstopper').length;
-  const crit     = issues.filter(i => i.priority === 'Critical').length;
-  const maj      = issues.filter(i => i.priority === 'Major').length;
+  const today     = new Date('2026-03-30');
+  const ageD      = d => (today - new Date(d)) / 86400000;
+  const total     = issues.length;
+  const ss        = issues.filter(i => i.priority === 'Showstopper').length;
+  const crit      = issues.filter(i => i.priority === 'Critical').length;
+  const maj       = issues.filter(i => i.priority === 'Major').length;
   const staleWarn = issues.filter(i => ageD(i.updated) >= SLA.staleWarn).length;
   const staleCrit = issues.filter(i => ageD(i.updated) >= SLA.staleCrit).length;
   const penalty   = ss * 8 + crit * 2 + staleWarn * 3;
   const score     = Math.max(0, 100 - penalty);
 
-  // Team breakdown
   const byTeam = {};
   issues.forEach(i => { byTeam[i.team] = (byTeam[i.team] || 0) + 1; });
   const teams = Object.entries(byTeam).sort((a, b) => b[1] - a[1]);
   const teamBars = total > 0 ? teams.slice(0, 3).map(([name, count]) => {
-    const pct = count / total * 100;
     const parts = name.split(' ');
     const label = parts.length >= 2 && parts[parts.length - 1].toLowerCase() === 'direct'
       ? parts[0] : parts[parts.length - 1];
-    return bar(label, pct, 'var(--orange)');
+    return bar(label, count / total * 100, 'var(--orange)');
   }).join('') : '';
+
+  const overrideActive = !!localStorage.getItem(STALLED_OVERRIDE_KEY);
+  const overrideDot = overrideActive ? ' <span style="color:var(--accent);font-size:9px;vertical-align:super">●</span>' : '';
 
   document.getElementById(bodyId).innerHTML = `
     <div class="score-section">
       ${ring(score, 'Health')}
       <div class="score-info">
-        <div class="score-headline ${scoreClass(score)}">${total} Stalled</div>
+        <div class="score-headline ${scoreClass(score)}">${total} Stalled${overrideDot}</div>
         <div class="score-sub">${ss + crit} critical &middot; ${staleWarn} stale ${SLA.staleWarn}d+<br>No update in ${SLA.stallDays}+ days</div>
       </div>
     </div>
     <hr class="div">
     <div class="stat-grid">
-      ${stat(ss + crit, 'Critical+',  ss + crit > 10 ? 'c-red'    : ss + crit > 0 ? 'c-orange' : 'c-green')}
-      ${stat(staleWarn, `Stale ${SLA.staleWarn}d+`, staleWarn > 3  ? 'c-orange' : staleWarn > 0   ? 'c-yellow' : 'c-green')}
-      ${stat(maj,       'Major',      '')}
-      ${stat(staleCrit, `Stale ${SLA.staleCrit}d+`, staleCrit > 0  ? 'c-red'    : 'c-green')}
+      ${stat(ss + crit, 'Critical+',          ss + crit > 10 ? 'c-red'    : ss + crit > 0 ? 'c-orange' : 'c-green')}
+      ${stat(staleWarn, `Stale ${SLA.staleWarn}d+`, staleWarn > 3    ? 'c-orange' : staleWarn > 0   ? 'c-yellow' : 'c-green')}
+      ${stat(maj,       'Major',              '')}
+      ${stat(staleCrit, `Stale ${SLA.staleCrit}d+`, staleCrit > 0    ? 'c-red'    : 'c-green')}
     </div>
     ${teamBars ? `<div class="bars">${teamBars}</div>` : ''}`;
 }
+
+// ─── Stalled Items Editor ─────────────────────────────────────────────────────
+
+const STATUSES  = ['OPEN','IN PROGRESS','IN REFINEMENT','READY TO IMPLEMENT','BLOCKED','CLOSED'];
+const PRIORITIES = ['Showstopper','Critical','Major','Minor'];
+
+let _editorItems = [];   // working copy while editor is open
+
+function openStalledEditor() {
+  if (!_stalledAll) { loadStalled().then(openStalledEditor); return; }
+  _editorItems = _stalledAll.map(i => Object.assign({}, i));
+  renderEditorTable();
+  document.getElementById('editor-override-badge').classList.toggle(
+    'hidden', !localStorage.getItem(STALLED_OVERRIDE_KEY));
+  document.getElementById('editor-overlay').classList.remove('hidden');
+  document.getElementById('editor-search').value = '';
+  document.getElementById('editor-filter').value = '';
+  document.getElementById('add-row-panel').classList.remove('visible');
+}
+
+function renderEditorTable() {
+  const search = (document.getElementById('editor-search').value || '').toLowerCase();
+  const filter = document.getElementById('editor-filter').value || '';
+
+  const tbody  = document.getElementById('editor-tbody');
+  tbody.innerHTML = '';
+
+  let shown = 0;
+  _editorItems.forEach((item, idx) => {
+    const isCloud  = CLOUD_PROJS.has(item.project);
+    const matchFilter = !filter || (filter === 'cloud' ? isCloud : !isCloud);
+    const matchSearch = !search ||
+      (item.key || '').toLowerCase().includes(search) ||
+      (item.summary || '').toLowerCase().includes(search) ||
+      (item.assignee || '').toLowerCase().includes(search) ||
+      (item.team || '').toLowerCase().includes(search);
+    const hidden = !matchFilter || !matchSearch;
+    if (!hidden) shown++;
+
+    const statusOpts = STATUSES.map(s =>
+      `<option${s === item.status ? ' selected' : ''}>${esc(s)}</option>`).join('');
+    const prioOpts = PRIORITIES.map(p =>
+      `<option${p === item.priority ? ' selected' : ''}>${esc(p)}</option>`).join('');
+
+    const tr = document.createElement('tr');
+    if (hidden) tr.classList.add('hidden-row');
+    tr.innerHTML = `
+      <td class="td-key"><a href="${esc(item.url || 'https://forcepoint.atlassian.net/browse/'+item.key)}" target="_blank">${esc(item.key)}</a></td>
+      <td><input class="ed-input" data-idx="${idx}" data-field="summary" value="${esc(item.summary)}" title="${esc(item.summary)}"></td>
+      <td class="td-dim">${esc(item.project)}</td>
+      <td><input class="ed-input" data-idx="${idx}" data-field="team" value="${esc(item.team || '')}"></td>
+      <td><select class="ed-select" data-idx="${idx}" data-field="status">${statusOpts}</select></td>
+      <td><select class="ed-select" data-idx="${idx}" data-field="priority">${prioOpts}</select></td>
+      <td class="td-dim">${esc(item.updated || '')}</td>
+      <td><button class="ed-del" data-del="${idx}" title="Delete">&#x2715;</button></td>`;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('editor-count').textContent =
+    `${shown} of ${_editorItems.length} items`;
+}
+
+// Live updates via event delegation
+document.getElementById('editor-tbody').addEventListener('change', e => {
+  const el = e.target;
+  const idx = parseInt(el.dataset.idx);
+  const field = el.dataset.field;
+  if (!isNaN(idx) && field) _editorItems[idx][field] = el.value;
+});
+document.getElementById('editor-tbody').addEventListener('input', e => {
+  const el = e.target;
+  const idx = parseInt(el.dataset.idx);
+  const field = el.dataset.field;
+  if (!isNaN(idx) && field) _editorItems[idx][field] = el.value;
+});
+document.getElementById('editor-tbody').addEventListener('click', e => {
+  const btn = e.target.closest('[data-del]');
+  if (!btn) return;
+  const idx = parseInt(btn.dataset.del);
+  _editorItems.splice(idx, 1);
+  renderEditorTable();
+});
+
+// Search / filter
+document.getElementById('editor-search').addEventListener('input', renderEditorTable);
+document.getElementById('editor-filter').addEventListener('change', renderEditorTable);
+
+// Add row panel
+document.getElementById('editor-add-btn').addEventListener('click', () => {
+  const panel = document.getElementById('add-row-panel');
+  panel.classList.toggle('visible');
+  if (panel.classList.contains('visible')) {
+    // Set today's date default
+    document.getElementById('af-updated').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('af-key').focus();
+  }
+});
+document.getElementById('add-cancel').addEventListener('click', () => {
+  document.getElementById('add-row-panel').classList.remove('visible');
+});
+document.getElementById('add-confirm').addEventListener('click', () => {
+  const key = document.getElementById('af-key').value.trim();
+  const summary = document.getElementById('af-summary').value.trim();
+  if (!key || !summary) { alert('Key and Summary are required.'); return; }
+  const project  = document.getElementById('af-project').value;
+  const today    = new Date().toISOString().slice(0, 10);
+  _editorItems.push({
+    key,
+    url: 'https://forcepoint.atlassian.net/browse/' + key,
+    summary,
+    project,
+    projectName: project,
+    assignee: document.getElementById('af-assignee').value.trim(),
+    team:     document.getElementById('af-team').value.trim(),
+    status:   document.getElementById('af-status').value,
+    priority: document.getElementById('af-priority').value,
+    type:     document.getElementById('af-type').value,
+    created:  today,
+    updated:  document.getElementById('af-updated').value || today,
+  });
+  // reset form
+  ['af-key','af-summary','af-assignee','af-team'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('add-row-panel').classList.remove('visible');
+  renderEditorTable();
+});
+
+// Close
+document.getElementById('editor-close').addEventListener('click', () => {
+  document.getElementById('editor-overlay').classList.add('hidden');
+});
+document.getElementById('editor-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('editor-overlay'))
+    document.getElementById('editor-overlay').classList.add('hidden');
+});
+
+// Save & Apply
+document.getElementById('ed-save').addEventListener('click', () => {
+  _stalledAll = _editorItems.map(i => Object.assign({}, i));
+  localStorage.setItem(STALLED_OVERRIDE_KEY, JSON.stringify(_stalledAll));
+  document.getElementById('editor-override-badge').classList.remove('hidden');
+  document.getElementById('editor-overlay').classList.add('hidden');
+  renderStalledCards();
+});
+
+// Export JSON
+document.getElementById('ed-export').addEventListener('click', () => {
+  const json = 'const ISSUES = ' + JSON.stringify(_editorItems, null, 2) + ';';
+  navigator.clipboard.writeText(json).then(
+    () => alert('ISSUES array copied to clipboard.\nPaste it into stalled.html at line 358 to make it permanent.'),
+    () => { /* fallback: show in new window */ const w = window.open(); w.document.write('<pre>' + json + '</pre>'); }
+  );
+});
+
+// Reset to file
+document.getElementById('ed-reset').addEventListener('click', () => {
+  if (!confirm('Discard all local edits and reload from stalled.html?')) return;
+  localStorage.removeItem(STALLED_OVERRIDE_KEY);
+  _stalledAll = _stalledFile;
+  _editorItems = _stalledFile.map(i => Object.assign({}, i));
+  document.getElementById('editor-override-badge').classList.add('hidden');
+  renderEditorTable();
+  renderStalledCards();
+});
 
 // ─── Boot & Refresh ───────────────────────────────────────────────────────────
 
 function refresh() {
   Promise.all([
-    loadEscalation().catch(e => { console.error(e); ['cloud-esc-body','onprem-esc-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
-    loadPI().catch(e => { console.error(e); ['cloud-pi-body','onprem-pi-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
-    loadStalled().catch(e => { console.error(e); ['cloud-stall-body','onprem-stall-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
+    loadEscalation().catch(e => { console.error(e); ['cloud-esc-body','onprem-esc-body'].forEach(id => document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'); }),
+    loadPI().catch(e => { console.error(e); ['cloud-pi-body','onprem-pi-body'].forEach(id => document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'); }),
+    loadStalled().catch(e => { console.error(e); ['cloud-stall-body','onprem-stall-body'].forEach(id => document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'); }),
   ]);
 }
 
