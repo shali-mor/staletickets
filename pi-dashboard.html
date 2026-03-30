@@ -184,6 +184,47 @@
   .summary-initiatives strong { color: var(--text); }
   .summary-initiatives .dot { margin: 0 8px; opacity: 0.4; }
   .num.cyan { color: var(--cyan); }
+
+  /* ── Planned / Unplanned split ──────────────────────── */
+  .plan-split { margin-bottom: 20px; }
+  .plan-split-header {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 10px;
+  }
+  .plan-split-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); }
+  .plan-split-total { font-size: 12px; color: var(--text-dim); }
+  .plan-split-total strong { color: var(--text); }
+  .plan-section {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; margin-bottom: 10px;
+  }
+  .plan-section.planned  { border-left: 3px solid var(--accent); }
+  .plan-section.unplanned { border-left: 3px solid var(--orange); }
+  .plan-section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .plan-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; }
+  .plan-section.planned  .plan-section-title { color: var(--accent); }
+  .plan-section.unplanned .plan-section-title { color: var(--orange); }
+  .plan-badge {
+    font-size: 11px; padding: 2px 9px; border-radius: 4px; font-weight: 600;
+  }
+  .plan-section.planned  .plan-badge { background: rgba(108,140,255,0.12); color: var(--accent); }
+  .plan-section.unplanned .plan-badge { background: rgba(249,115,22,0.12); color: var(--orange); }
+  .plan-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .plan-card {
+    flex: 1; min-width: 72px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .plan-card .num { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .plan-card .lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px; }
+  .plan-card .num.green  { color: var(--green); }
+  .plan-card .num.orange { color: var(--orange); }
+  .plan-card .num.red    { color: var(--red); }
+  .plan-card .num.accent { color: var(--accent); }
+  .plan-card .num.dim    { color: var(--text-dim); }
+  .plan-empty { color: var(--text-dim); font-size: 12px; font-style: italic; }
+  /* mark unplanned rows with a subtle left indicator */
+  tr[data-planned="no"] > td:first-child { border-left: 2px solid var(--orange); padding-left: 6px; }
 </style>
 </head>
 <body>
@@ -209,6 +250,8 @@
     <div class="progress-bar-outer" id="cloud-bar"></div>
     <div class="progress-legend" id="cloud-legend"></div>
   </div>
+
+  <div class="plan-split" id="cloud-plan-split"></div>
 
   <div class="filter-bar">
     <button class="filter-btn active" onclick="filterCloud('all')">All</button>
@@ -418,6 +461,8 @@
     <div class="progress-bar-outer" id="onprem-bar"></div>
     <div class="progress-legend" id="onprem-legend"></div>
   </div>
+
+  <div class="plan-split" id="onprem-plan-split"></div>
 
   <div class="filter-bar">
     <button class="filter-btn active" onclick="filterOnprem('all')">All</button>
@@ -1012,11 +1057,113 @@ function injectSectionCounts() {
   });
 }
 
+/* --- Count initiatives filtered by planned status ---
+   Rows with data-planned="no" are unplanned; all others are planned.
+   To mark a row as unplanned, add data-planned="no" to its <tr>.       */
+function countByPlan(tabId, wantPlanned) {
+  const tab = document.getElementById(tabId);
+  const groups = tab.querySelectorAll('.section-group');
+  let totalThemes = 0, complete = 0, inProgress = 0, atRisk = 0;
+  let iTotal = 0, iDone = 0, iReview = 0, iProgress = 0, iDropped = 0;
+
+  groups.forEach(group => {
+    const rows = group.querySelectorAll('tr.row-done, tr.row-incomplete');
+    let tDone = 0, tReview = 0, tProgress = 0, tDropped = 0;
+    rows.forEach(row => {
+      if (row.classList.contains('blocker-row')) return;
+      const isPlanned = row.getAttribute('data-planned') !== 'no';
+      if (wantPlanned !== isPlanned) return;
+      const cat = classifyRow(row);
+      if (cat === 'done')          tDone++;
+      else if (cat === 'review')   tReview++;
+      else if (cat === 'progress') tProgress++;
+      else if (cat === 'dropped')  tDropped++;
+    });
+    const themeTotal = tDone + tReview + tProgress + tDropped;
+    if (themeTotal === 0) return;
+    totalThemes++;
+    iTotal += themeTotal; iDone += tDone; iReview += tReview;
+    iProgress += tProgress; iDropped += tDropped;
+    if (tDone === themeTotal) complete++;
+    else if (tDropped > 0) atRisk++;
+    else inProgress++;
+  });
+
+  return { totalThemes, complete, inProgress, atRisk,
+    initiatives: { total: iTotal, done: iDone, review: iReview, progress: iProgress, dropped: iDropped } };
+}
+
+/* --- Render planned / unplanned split section --- */
+function renderPlanSplit(prefix, plannedData, unplannedData, droppedLabel) {
+  const container = document.getElementById(prefix + '-plan-split');
+
+  function bar(d) {
+    const t = d.totalThemes || 1;
+    return (d.complete   ? '<div class="progress-bar-seg done"     style="width:' + (d.complete   / t * 100).toFixed(1) + '%">' + d.complete   + '/' + d.totalThemes + '</div>' : '') +
+           (d.inProgress ? '<div class="progress-bar-seg progress" style="width:' + (d.inProgress / t * 100).toFixed(1) + '%">' + d.inProgress + '/' + d.totalThemes + '</div>' : '') +
+           (d.atRisk     ? '<div class="progress-bar-seg todo"     style="width:' + (d.atRisk     / t * 100).toFixed(1) + '%">' + d.atRisk     + '/' + d.totalThemes + '</div>' : '');
+  }
+
+  function sectionHTML(title, cls, d, dropped) {
+    const ic = d.initiatives;
+    if (ic.total === 0) {
+      return '<div class="plan-section ' + cls + '">' +
+        '<div class="plan-section-header">' +
+          '<span class="plan-section-title">' + title + '</span>' +
+          '<span class="plan-badge">0 initiatives</span>' +
+        '</div>' +
+        '<div class="plan-empty">None — ' + (cls === 'unplanned' ? 'all work is planned' : 'no planned initiatives') + '</div>' +
+      '</div>';
+    }
+    const pctDone = Math.round(ic.done / ic.total * 100);
+    const inFlight = ic.review + ic.progress;
+    return '<div class="plan-section ' + cls + '">' +
+      '<div class="plan-section-header">' +
+        '<span class="plan-section-title">' + title + '</span>' +
+        '<span class="plan-badge">' + ic.total + ' initiatives &middot; ' + pctDone + '% complete</span>' +
+      '</div>' +
+      '<div class="plan-summary">' +
+        '<div class="plan-card"><div class="num accent">' + ic.total    + '</div><div class="lbl">Total</div></div>' +
+        '<div class="plan-card"><div class="num green">'  + ic.done     + '</div><div class="lbl">Done</div></div>' +
+        '<div class="plan-card"><div class="num orange">' + inFlight    + '</div><div class="lbl">In Flight</div></div>' +
+        '<div class="plan-card"><div class="num ' + (ic.dropped > 0 ? 'red' : 'dim') + '">' + ic.dropped + '</div><div class="lbl">' + dropped + '</div></div>' +
+        '<div class="plan-card"><div class="num ' + (d.atRisk > 0 ? 'red' : 'accent') + '">' + d.atRisk + '</div><div class="lbl">At Risk</div></div>' +
+        '<div class="plan-card"><div class="num accent">' + d.totalThemes + '</div><div class="lbl">Themes</div></div>' +
+      '</div>' +
+      '<div class="progress-bar-outer" style="margin-bottom:6px">' + bar(d) + '</div>' +
+      '<div class="progress-legend">' +
+        '<span class="legend-done">Complete (' + d.complete + ')</span>' +
+        '<span class="legend-progress">In Progress (' + d.inProgress + ')</span>' +
+        '<span class="legend-todo">At Risk (' + d.atRisk + ')</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  const total = plannedData.initiatives.total + unplannedData.initiatives.total;
+  container.innerHTML =
+    '<div class="plan-split-header">' +
+      '<span class="plan-split-title">Initiative Breakdown</span>' +
+      '<span class="plan-split-total"><strong>' + total + '</strong> total &middot; ' +
+        '<strong>' + plannedData.initiatives.total + '</strong> planned &middot; ' +
+        '<strong>' + unplannedData.initiatives.total + '</strong> unplanned</span>' +
+    '</div>' +
+    sectionHTML('Planned Initiatives', 'planned', plannedData, droppedLabel) +
+    sectionHTML('Unplanned Initiatives', 'unplanned', unplannedData, droppedLabel);
+}
+
 // Compute and render on load
 const cloudData = countThemes('tab-cloud');
 renderSummary('cloud', cloudData, 'Deferred');
+const cloudPlanned   = countByPlan('tab-cloud', true);
+const cloudUnplanned = countByPlan('tab-cloud', false);
+renderPlanSplit('cloud', cloudPlanned, cloudUnplanned, 'Deferred');
+
 const onpremData = countThemes('tab-onprem');
 renderSummary('onprem', onpremData, 'Dropped / Blocked');
+const onpremPlanned   = countByPlan('tab-onprem', true);
+const onpremUnplanned = countByPlan('tab-onprem', false);
+renderPlanSplit('onprem', onpremPlanned, onpremUnplanned, 'Dropped / Blocked');
+
 injectSectionCounts();
 </script>
 </body>
