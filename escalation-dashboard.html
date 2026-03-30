@@ -468,112 +468,7 @@
   .pi-dl-val { margin-left: auto; font-weight: 600; color: var(--text); }
 
 
-  /* ── Dashboard Overview ──────────────────────────────────────────────── */
-  #dashboardView { animation: fadeIn .25s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-  .dash-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
-  }
-  @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
-  .dash-team-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 22px; cursor: pointer; transition: border-color .2s, box-shadow .2s;
-    display: flex; flex-direction: column; gap: 16px;
-  }
-  .dash-team-card:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent)22; }
-  .dash-team-header {
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .dash-team-title { font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
-  .dash-team-sub   { font-size: 12px; color: var(--text-dim); }
-  .dash-cta {
-    font-size: 12px; font-weight: 600; color: var(--accent);
-    display: flex; align-items: center; gap: 4px;
-  }
-  .dash-cta-arrow { transition: transform .2s; }
-  .dash-team-card:hover .dash-cta-arrow { transform: translateX(4px); }
-
-  .dash-body { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
-  @media (max-width: 600px) { .dash-body { grid-template-columns: 1fr; } }
-
-  .dash-score-block {
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    padding: 12px 18px; background: var(--surface2); border-radius: 10px;
-    border: 1px solid var(--border); min-width: 110px;
-  }
-  .dash-score-num { font-size: 42px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
-  .dash-score-grade {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 7px;
-    font-size: 16px; font-weight: 800; border: 2px solid;
-  }
-  .dash-score-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
-    letter-spacing: .5px; text-align: center; }
-
-  .dash-metrics { display: flex; flex-direction: column; gap: 8px; }
-  .dash-metric-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .dash-kpi {
-    flex: 1; min-width: 80px; background: var(--surface2); border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px 12px;
-  }
-  .dash-kpi .dk-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
-    letter-spacing: .4px; margin-bottom: 3px; }
-  .dash-kpi .dk-val { font-size: 20px; font-weight: 700; }
-  .dash-kpi.red    .dk-val { color: var(--red); }
-  .dash-kpi.green  .dk-val { color: var(--green); }
-  .dash-kpi.orange .dk-val { color: var(--orange); }
-  .dash-kpi.accent .dk-val { color: var(--accent); }
-  .dash-kpi.yellow .dk-val { color: var(--yellow); }
-
-  .dash-pi-strip {
-    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 14px;
-  }
-  .dash-pi-strip-label {
-    font-size: 10px; color: var(--text-dim); text-transform: uppercase;
-    letter-spacing: .4px; margin-bottom: 8px; font-weight: 600;
-  }
-  .dash-pi-bar { height: 10px; background: var(--bg); border-radius: 5px;
-    overflow: hidden; display: flex; margin-bottom: 6px; }
-  .dash-pi-seg { height: 100%; min-width: 3px; }
-  .dash-pi-seg.done     { background: var(--green); }
-  .dash-pi-seg.progress { background: var(--orange); }
-  .dash-pi-seg.atrisk   { background: var(--red); }
-  .dash-pi-counts { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); flex-wrap: wrap; }
-  .dash-pi-counts span::before { content: ''; display: inline-block;
-    width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
-  .dash-pic-done::before { background: var(--green); }
-  .dash-pic-prog::before { background: var(--orange); }
-  .dash-pic-risk::before { background: var(--red); }
-
-  /* Open showstoppers panel */
-  .dash-alerts-panel {
-    background: var(--surface); border: 1px solid rgba(255,71,87,.35);
-    border-radius: 12px; padding: 16px; margin-bottom: 20px;
-  }
-  .dash-alerts-header {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
-  }
-  .dash-alerts-title {
-    font-size: 13px; font-weight: 700; color: var(--red); text-transform: uppercase;
-    letter-spacing: .5px;
-  }
-  .dash-alert-row {
-    display: flex; align-items: baseline; gap: 10px; padding: 7px 0;
-    border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .15s;
-    font-size: 13px;
-  }
-  .dash-alert-row:last-child { border-bottom: none; }
-  .dash-alert-row:hover { opacity: .8; }
-  .dash-alert-key { color: var(--accent); font-weight: 600; white-space: nowrap; font-size: 12px; }
-  .dash-alert-sum { color: var(--text); flex: 1; line-height: 1.35; }
-  .dash-alert-age { color: var(--red); font-size: 11px; white-space: nowrap; font-weight: 600; }
-  .dash-alert-cust { color: var(--text-dim); font-size: 11px; white-space: nowrap; }
-  .dash-no-alerts {
-    text-align: center; padding: 16px; color: var(--green); font-size: 14px; font-weight: 600;
-  }
-
-  /* Detail view back button */
+  /* Home back button */
   .dash-back {
     display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px;
     font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;
@@ -660,12 +555,8 @@
 </div>
 
 
-<div id="dashboardView">
-  <!-- populated by renderDashboard() -->
-</div>
-
-<div id="detailView" style="display:none">
-<div class="dash-back" onclick="showDashboard()">&#8592; Dashboard</div>
+<div id="detailView">
+<a class="dash-back" href="index.html">&#8592; Home</a>
 <div class="controls">
   <div class="control-group">
     <label>Time Range</label>
@@ -718,12 +609,12 @@
   <div class="sla-config-title">MTTR Targets</div>
   <div class="sla-field">
     <label><span class="badge Showstopper">Showstopper</span></label>
-    <input type="number" id="mttrShowstopper" value="5" min="1" max="365" onchange="renderDashboard()">
+    <input type="number" id="mttrShowstopper" value="5" min="1" max="365">
     <div class="unit">days</div>
   </div>
   <div class="sla-field">
     <label><span class="badge Critical">Critical</span></label>
-    <input type="number" id="mttrCritical" value="10" min="1" max="365" onchange="renderDashboard()">
+    <input type="number" id="mttrCritical" value="10" min="1" max="365">
     <div class="unit">days</div>
   </div>
 </div>
@@ -1100,12 +991,6 @@ function getSla() {
   };
 }
 
-function getMttr() {
-  return {
-    Showstopper: Math.max(1, parseInt(document.getElementById('mttrShowstopper').value) || 5),
-    Critical:    Math.max(1, parseInt(document.getElementById('mttrCritical').value)    || 10),
-  };
-}
 
 // ─── CHART INSTANCES ──────────────────────────────────────────────────────────
 const charts = {};
@@ -2054,136 +1939,6 @@ function toggleSection(header) {
   if (chevron) chevron.classList.toggle('collapsed');
 }
 
-function showDetail(side) {
-  document.getElementById('dashboardView').style.display = 'none';
-  document.getElementById('detailView').style.display = '';
-  const btn = [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick') || '').includes(`'${side}'`));
-  if (btn) switchTab(side, btn);
-}
-
-function showDashboard() {
-  document.getElementById('detailView').style.display = 'none';
-  document.getElementById('dashboardView').style.display = '';
-}
-
-function renderDashboard() {
-  const cData   = cloudData;
-  const oData   = onpremData;
-  const slaVals = getSla();
-
-  function teamWidget(side, data, label, detailFn) {
-    const score  = computeTeamScore(data);
-    const open   = data.filter(t => isOpenStatus(t.status));
-    const closed = data.filter(t => !isOpenStatus(t.status));
-    const openSS = data.filter(t => t.priority === 'Showstopper' && isOpenStatus(t.status));
-    const closedWithRes = closed.filter(t => t.resolutiondate);
-    const allRes = closedWithRes.map(t => resolutionDays(t));
-    const avgMTTR = allRes.length ? Math.round(allRes.reduce((a,b)=>a+b,0)/allRes.length) : null;
-
-    const mttrVals = getMttr();
-    const ssRes   = closedWithRes.filter(t => t.priority === 'Showstopper');
-    const critRes = closedWithRes.filter(t => t.priority === 'Critical');
-    const avgMTTR_SS   = ssRes.length   ? Math.round(ssRes.map(t => resolutionDays(t)).reduce((a,b)=>a+b,0)/ssRes.length)     : null;
-    const avgMTTR_Crit = critRes.length ? Math.round(critRes.map(t => resolutionDays(t)).reduce((a,b)=>a+b,0)/critRes.length) : null;
-    const ssMttrCls   = avgMTTR_SS   === null ? 'accent' : avgMTTR_SS   <= mttrVals.Showstopper ? 'green' : 'red';
-    const critMttrCls = avgMTTR_Crit === null ? 'accent' : avgMTTR_Crit <= mttrVals.Critical    ? 'green' : 'red';
-
-    const openPastSLA = open.filter(t => ageDays(t) > (slaVals[t.priority] ?? 99));
-    const metSLA = closedWithRes.filter(t => (resolutionDays(t) ?? 0) <= (slaVals[t.priority] ?? 99));
-    const evalTotal = closedWithRes.length + openPastSLA.length;
-    const slaComp = evalTotal > 0 ? Math.round(metSLA.length / evalTotal * 100) : null;
-
-    const sc = score ?? { score: '—', grade: '—', gc: 'var(--text-dim)' };
-    const gc = sc.gc || 'var(--text-dim)';
-
-    return `
-      <div class="dash-team-card" onclick="showDetail('${side}')">
-        <div class="dash-team-header">
-          <div>
-            <div class="dash-team-title">${label}</div>
-            <div class="dash-team-sub">${data.length} escalations in range</div>
-          </div>
-          <div class="dash-cta">View Details <span class="dash-cta-arrow">&#8594;</span></div>
-        </div>
-        <div class="dash-body">
-          <div class="dash-score-block">
-            <div style="display:flex;align-items:center;gap:8px">
-              <div class="dash-score-num" style="color:${gc}">${sc.score}</div>
-              <div class="dash-score-grade" style="color:${gc};background:${gc}18;border-color:${gc}55">${sc.grade}</div>
-            </div>
-            <div class="dash-score-label">Team Score</div>
-          </div>
-          <div class="dash-metrics">
-            <div class="dash-metric-row">
-              <div class="dash-kpi accent">
-                <div class="dk-lbl">Total</div>
-                <div class="dk-val">${data.length}</div>
-              </div>
-              <div class="dash-kpi ${open.length > 5 ? 'red' : 'green'}">
-                <div class="dk-lbl">Open</div>
-                <div class="dk-val">${open.length}</div>
-              </div>
-              <div class="dash-kpi green">
-                <div class="dk-lbl">Resolved</div>
-                <div class="dk-val">${closed.length}</div>
-              </div>
-              <div class="dash-kpi ${openSS.length > 0 ? 'red' : 'orange'}">
-                <div class="dk-lbl">Showstoppers</div>
-                <div class="dk-val">${openSS.length} open</div>
-              </div>
-            </div>
-            <div class="dash-metric-row">
-              <div class="dash-kpi ${ssMttrCls}">
-                <div class="dk-lbl">MTTR · SS</div>
-                <div class="dk-val">${avgMTTR_SS !== null ? avgMTTR_SS + 'd' : '—'}</div>
-              </div>
-              <div class="dash-kpi ${critMttrCls}">
-                <div class="dk-lbl">MTTR · Critical</div>
-                <div class="dk-val">${avgMTTR_Crit !== null ? avgMTTR_Crit + 'd' : '—'}</div>
-              </div>
-              <div class="dash-kpi ${slaComp === null ? 'accent' : slaComp >= 75 ? 'green' : slaComp >= 50 ? 'yellow' : 'red'}">
-                <div class="dk-lbl">SLA Compliance</div>
-                <div class="dk-val">${slaComp !== null ? slaComp + '%' : '—'}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  // Open showstoppers across both teams
-  const allData = [...cData, ...oData];
-  const openSS  = allData
-    .filter(t => t.priority === 'Showstopper' && isOpenStatus(t.status))
-    .sort((a, b) => ageDays(b) - ageDays(a));
-
-  const alertsHtml = openSS.length === 0
-    ? '<div class="dash-no-alerts">No open Showstoppers — good standing</div>'
-    : openSS.map(t => {
-        const age = Math.round(ageDays(t));
-        const team = ['NEO','DPS'].includes(t.project) ? 'Cloud DLP' : 'OnPrem DLP';
-        const side = ['NEO','DPS'].includes(t.project) ? 'cloud' : 'onprem';
-        return `<div class="dash-alert-row" onclick="showDetail('${side}')">
-          <span class="dash-alert-key">${t.key}</span>
-          <span class="dash-alert-cust">[${team}]</span>
-          <span class="dash-alert-sum">${t.summary.length > 90 ? t.summary.slice(0,90)+'…' : t.summary}</span>
-          <span class="dash-alert-age">${age}d open</span>
-        </div>`;
-      }).join('');
-
-  document.getElementById('dashboardView').innerHTML = `
-    <div class="dash-grid">
-      ${teamWidget('cloud',  cData, '☁️  DLP Cloud')}
-      ${teamWidget('onprem', oData, '🖥️  DLP On-Prem')}
-    </div>
-    <div class="dash-alerts-panel">
-      <div class="dash-alerts-header">
-        <span class="dash-alerts-title">Open Showstoppers</span>
-        <span style="font-size:12px;color:var(--text-dim)">${openSS.length} across all teams · click to drill in</span>
-      </div>
-      ${alertsHtml}
-    </div>`;
-}
 
 
 // Init
@@ -2192,7 +1947,15 @@ document.getElementById('dateStamp').textContent =
   ' · Jira: forcepoint.atlassian.net · Escalation issue type · NEO, DPS, DLP, FSM';
 
 render();
-renderDashboard();
+
+// Auto-select tab from ?tab=cloud or ?tab=onprem URL param
+(function() {
+  const tab = new URLSearchParams(location.search).get('tab');
+  if (tab === 'onprem') {
+    const btn = document.querySelector('.tab[onclick*="\'onprem\'"]');
+    if (btn) switchTab('onprem', btn);
+  }
+})();
 </script>
 </body>
 </html>
