@@ -348,7 +348,7 @@ function renderPICard(bodyId, d) {
 
 // ─── Stalled Items ────────────────────────────────────────────────────────────
 
-const CLOUD_PROJS = new Set(['NEO', 'DPS', 'CASB']);
+const CLOUD_PROJS = new Set(['NEO', 'DPS']);
 
 async function loadStalled() {
   const html  = await fetch('stalled.html').then(r => r.text());
