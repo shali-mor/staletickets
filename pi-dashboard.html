@@ -223,8 +223,11 @@
   .plan-card .num.accent { color: var(--accent); }
   .plan-card .num.dim    { color: var(--text-dim); }
   .plan-empty { color: var(--text-dim); font-size: 12px; font-style: italic; }
-  /* mark unplanned rows with a subtle left indicator */
-  tr[data-planned="no"] > td:first-child { border-left: 2px solid var(--orange); padding-left: 6px; }
+  /* mark unplanned rows with a subtle left indicator (planned = data-planned="yes" only) */
+  tr.row-done:not([data-planned="yes"]) > td:first-child,
+  tr.row-incomplete:not(.blocker-row):not([data-planned="yes"]) > td:first-child {
+    border-left: 2px solid var(--orange); padding-left: 6px;
+  }
 </style>
 </head>
 <body>
@@ -1058,8 +1061,8 @@ function injectSectionCounts() {
 }
 
 /* --- Count initiatives filtered by planned status ---
-   Rows with data-planned="no" are unplanned; all others are planned.
-   To mark a row as unplanned, add data-planned="no" to its <tr>.       */
+   Planned = data-planned="yes" only.
+   Unplanned = data-planned missing, empty, "no", or any value other than "yes". */
 function countByPlan(tabId, wantPlanned) {
   const tab = document.getElementById(tabId);
   const groups = tab.querySelectorAll('.section-group');
@@ -1071,7 +1074,7 @@ function countByPlan(tabId, wantPlanned) {
     let tDone = 0, tReview = 0, tProgress = 0, tDropped = 0;
     rows.forEach(row => {
       if (row.classList.contains('blocker-row')) return;
-      const isPlanned = row.getAttribute('data-planned') !== 'no';
+      const isPlanned = row.getAttribute('data-planned') === 'yes';
       if (wantPlanned !== isPlanned) return;
       const cat = classifyRow(row);
       if (cat === 'done')          tDone++;
