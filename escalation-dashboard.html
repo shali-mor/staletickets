@@ -1,0 +1,2155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Escalations — DLP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2d3141;
+    --text: #e1e4ed;
+    --text-dim: #8b90a0;
+    --accent: #6c8cff;
+    --red: #ff4757;
+    --orange: #ff9f43;
+    --yellow: #ffd93d;
+    --major: #54a0ff;
+    --green: #51cf66;
+    --purple: #b197fc;
+    --cyan: #66d9e8;
+    --teal: #20c997;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 16px;
+  }
+  .header h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .header h1 span { color: var(--text-dim); font-weight: 400; }
+  .date-stamp { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Controls */
+  .controls {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    margin-bottom: 20px; padding: 14px 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .controls label { font-size: 13px; color: var(--text-dim); }
+  .controls select {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+    outline: none;
+  }
+  .controls select:focus { border-color: var(--accent); }
+  .control-group { display: flex; align-items: center; gap: 8px; }
+  .sep { width: 1px; height: 24px; background: var(--border); }
+
+  /* Tabs */
+  .tab-bar {
+    display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 10px 28px; cursor: pointer; font-size: 14px; font-weight: 500;
+    color: var(--text-dim); border-bottom: 2px solid transparent;
+    transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Stats row */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; border-left: 3px solid transparent;
+  }
+  .stat-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 6px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .stat-card .sub { font-size: 12px; color: var(--text-dim); margin-top: 3px; }
+  .stat-card.red    { border-left-color: var(--red); }    .stat-card.red .value    { color: var(--red); }
+  .stat-card.orange { border-left-color: var(--orange); } .stat-card.orange .value { color: var(--orange); }
+  .stat-card.green  { border-left-color: var(--green); }  .stat-card.green .value  { color: var(--green); }
+  .stat-card.accent { border-left-color: var(--accent); } .stat-card.accent .value { color: var(--accent); }
+  .stat-card.yellow { border-left-color: var(--yellow); } .stat-card.yellow .value { color: var(--yellow); }
+  .stat-card.purple { border-left-color: var(--purple); } .stat-card.purple .value { color: var(--purple); }
+
+  /* Severity chart */
+  .chart-section {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; margin-bottom: 20px;
+  }
+  .chart-section h3 { font-size: 13px; font-weight: 600; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; }
+  .sev-bars { display: flex; flex-direction: column; gap: 10px; }
+  .sev-bar-row { display: flex; align-items: center; gap: 12px; }
+  .sev-label { width: 120px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .sev-bar-wrap { flex: 1; height: 22px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .sev-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; min-width: 2px; }
+  .sev-count { width: 80px; font-size: 13px; color: var(--text-dim); text-align: right; }
+  .sev-open-pct { width: 60px; font-size: 12px; color: var(--text-dim); text-align: right; }
+
+  /* Status breakdown */
+  .status-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .status-chip {
+    display: flex; align-items: center; gap: 6px; padding: 4px 10px;
+    border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: var(--surface2); border: 1px solid var(--border);
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  /* Table */
+  .table-section { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .table-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .table-header h3 { font-size: 13px; font-weight: 600; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; padding: 10px 12px; font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border);
+    background: var(--surface2); cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  th:hover { color: var(--text); }
+  th .sort-icon { margin-left: 4px; opacity: 0.5; }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(108, 140, 255, 0.04); }
+  .ticket-key a {
+    color: var(--accent); text-decoration: none; font-weight: 500; white-space: nowrap;
+  }
+  .ticket-key a:hover { text-decoration: underline; }
+  .ticket-summary { max-width: 360px; line-height: 1.4; color: var(--text); }
+  .assignee { color: var(--text-dim); white-space: nowrap; }
+  .age { white-space: nowrap; color: var(--text-dim); }
+  .age.old { color: var(--orange); }
+  .age.very-old { color: var(--red); }
+
+  /* Priority badges */
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600; white-space: nowrap; text-transform: uppercase;
+  }
+  .badge.Showstopper { background: rgba(255, 71, 87, 0.18);  color: var(--red);    border: 1px solid rgba(255,71,87,0.35); }
+  .badge.Critical    { background: rgba(255, 159, 67, 0.18); color: var(--orange); border: 1px solid rgba(255,159,67,0.35); }
+  .badge.Major       { background: rgba(84, 160, 255, 0.15); color: var(--major);  border: 1px solid rgba(84,160,255,0.3); }
+
+  /* Status badges */
+  .sbadge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 500; white-space: nowrap;
+  }
+  .sbadge.open       { background: rgba(108,140,255,0.15); color: var(--accent); }
+  .sbadge.closed     { background: rgba(81,207,102,0.15);  color: var(--green); }
+  .sbadge.inprogress { background: rgba(102,217,232,0.15); color: var(--cyan); }
+  .sbadge.blocked    { background: rgba(177,151,252,0.15); color: var(--purple); }
+  .sbadge.other      { background: rgba(139,144,160,0.15); color: var(--text-dim); }
+
+  /* Project badge */
+  .proj {
+    display: inline-block; padding: 1px 6px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; color: var(--text-dim);
+    background: var(--surface2); border: 1px solid var(--border); margin-right: 4px;
+  }
+
+  .no-data {
+    text-align: center; padding: 40px; color: var(--text-dim); font-size: 14px;
+  }
+  .section-divider {
+    display: flex; align-items: center; gap: 12px; margin: 20px 0 16px;
+    font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .section-divider::before, .section-divider::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .col-1-2  { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 900px) { .two-col, .col-1-2 { grid-template-columns: 1fr; } }
+
+  .sla-config-title {
+    font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: 0.5px; font-weight: 600; white-space: nowrap;
+  }
+  .tab-filter-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 16px; padding: 8px 12px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 7px;
+    font-size: 13px;
+  }
+  .tab-filter-label { color: var(--text-dim); font-size: 12px; }
+  .tab-filter-bar select {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+    padding: 4px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; outline: none;
+  }
+  .tab-filter-bar select:focus { border-color: var(--accent); }
+  .tab-filter-proj {
+    display: inline-flex; gap: 4px;
+  }
+  .proj-btn {
+    padding: 3px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim);
+    transition: all 0.15s;
+  }
+  .proj-btn.active { background: rgba(108,140,255,0.15); border-color: var(--accent); color: var(--accent); }
+  .proj-btn:hover:not(.active) { color: var(--text); border-color: var(--text-dim); }
+  .sla-field { display: flex; flex-direction: column; gap: 4px; }
+  .sla-field label {
+    font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: .5px; display: flex; align-items: center; gap: 6px;
+  }
+  .sla-field input {
+    width: 84px; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 10px; border-radius: 6px;
+    font-size: 15px; font-weight: 700; text-align: center; outline: none;
+  }
+  .sla-field input:focus { border-color: var(--accent); }
+  .sla-field .unit { font-size: 11px; color: var(--text-dim); text-align: center; }
+
+  /* Canvas chart wrapper */
+  .canvas-section {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; margin-bottom: 20px;
+  }
+  .cs-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  }
+  .cs-header h3 {
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .insight-btn {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+    background: rgba(108,140,255,0.12); border: 1px solid rgba(108,140,255,0.3); color: var(--accent);
+    transition: all 0.15s;
+  }
+  .insight-btn:hover { background: rgba(108,140,255,0.22); border-color: var(--accent); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Performance Overview Panel */
+  .sev-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .sev-panel-header {
+    display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--border); padding-bottom: 14px;
+  }
+  .sev-panel-header h3 {
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .sev-panel-sub { font-size: 12px; color: var(--text-dim); }
+
+  .sev-cards-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .sev-cards-grid { grid-template-columns: 1fr; } }
+
+  .sev-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 18px;
+    border-left: 3px solid transparent;
+  }
+  .sev-card.Showstopper { border-left-color: var(--red); }
+  .sev-card.Critical    { border-left-color: var(--orange); }
+  .sev-card.Major       { border-left-color: var(--major); }
+
+  .sev-card-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .sev-open-alert { font-size: 12px; font-weight: 600; }
+  .sev-open-alert.danger { color: var(--red); }
+  .sev-open-alert.ok     { color: var(--green); }
+  .sev-open-alert.none   { color: var(--text-dim); font-weight: 400; }
+
+  .sev-card-body { display: flex; gap: 16px; align-items: flex-start; }
+
+  .grade-block {
+    flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  }
+  .grade-circle {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; font-weight: 800; border: 2px solid;
+  }
+  .grade-circle-label {
+    font-size: 10px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+
+  .metrics-block { flex: 1; display: flex; flex-direction: column; gap: 11px; min-width: 0; }
+  .metrics-row   { display: flex; gap: 16px; flex-wrap: wrap; }
+  .metric-item   { display: flex; flex-direction: column; gap: 2px; }
+  .metric-item .ml {
+    font-size: 10px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.4px; white-space: nowrap;
+  }
+  .metric-item .mv { font-size: 16px; font-weight: 700; color: var(--text); }
+
+  .compliance-bar-wrap  { display: flex; flex-direction: column; gap: 5px; }
+  .compliance-bar-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text-dim);
+  }
+  .compliance-track {
+    height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden;
+  }
+  .compliance-fill { height: 100%; border-radius: 4px; transition: width 0.45s ease; }
+
+  .trend-block {
+    flex-shrink: 0; display: flex; flex-direction: column; align-items: center;
+    gap: 5px; min-width: 64px;
+  }
+  .trend-block .tl {
+    font-size: 10px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+
+  .trend-chart-section { border-top: 1px solid var(--border); padding-top: 16px; }
+  .trend-chart-header {
+    font-size: 11px; font-weight: 600; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+  }
+
+  /* Score Banner */
+  .score-banner {
+    display: flex; align-items: stretch;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 20px; overflow: hidden;
+  }
+  .score-main-block {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 18px 28px; min-width: 130px; border-right: 1px solid var(--border);
+    gap: 4px;
+  }
+  .score-number-row { display: flex; align-items: center; gap: 10px; }
+  .score-number { font-size: 52px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+  .score-grade-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 9px;
+    font-size: 20px; font-weight: 800; border: 2px solid;
+  }
+  .score-main-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .score-details {
+    flex: 1; padding: 16px 24px; display: flex; flex-direction: column;
+    justify-content: center; gap: 8px; min-width: 0;
+  }
+  .score-title-row { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  .score-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .score-trend-note { font-size: 12px; }
+  .score-components { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+  .score-comp { display: flex; flex-direction: column; gap: 4px; min-width: 80px; }
+  .score-comp .sc-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
+  .score-comp .sc-val { font-size: 18px; font-weight: 700; }
+  .score-comp .sc-bar { height: 4px; background: var(--bg); border-radius: 2px; overflow: hidden; }
+  .score-comp .sc-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .score-comp .sc-wt { font-size: 10px; color: var(--text-dim); }
+
+  /* ── PI Initiatives Tab ──────────────────────────────────────── */
+  .pi-charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  @media (max-width: 800px) { .pi-charts-row { grid-template-columns: 1fr; } }
+  .pi-tab-bar { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .pi-tab { padding: 9px 22px; cursor: pointer; font-size: 13px; font-weight: 500;
+    color: var(--text-dim); border-bottom: 2px solid transparent; background: none;
+    border-top: none; border-left: none; border-right: none; transition: all 0.2s; }
+  .pi-tab:hover { color: var(--text); }
+  .pi-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .pi-tab-content { display: none; }
+  .pi-tab-content.active { display: block; }
+  #pi table { width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--surface); border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border); margin-bottom: 16px; }
+  #pi th { text-align: left; padding: 10px 14px; font-weight: 600; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim);
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    cursor: default; user-select: none; }
+  #pi th:hover { color: var(--text-dim); }
+  #pi td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  #pi tr:last-child td { border-bottom: none; }
+  #pi tr:hover td { background: rgba(108, 140, 255, 0.04); }
+  .pi-summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px; }
+  .pi-summary-card { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-align: center; }
+  .pi-summary-card .snum { font-size: 28px; font-weight: 700; }
+  .pi-summary-card .slbl { font-size: 12px; color: var(--text-dim); margin-top: 4px;
+    text-transform: uppercase; letter-spacing: 0.5px; }
+  .snum.sngreen  { color: var(--green); }  .snum.snorange { color: var(--orange); }
+  .snum.snred    { color: var(--red); }    .snum.snaccent { color: var(--accent); }
+  .pi-prog-container { background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+  .pi-prog-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .pi-prog-outer { height: 24px; background: var(--surface2); border-radius: 12px;
+    overflow: hidden; display: flex; }
+  .pi-prog-seg { height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #fff; min-width: 30px; transition: width 0.4s; }
+  .pi-prog-seg.done     { background: var(--green); }
+  .pi-prog-seg.progress { background: var(--orange); }
+  .pi-prog-seg.atrisk   { background: var(--red); }
+  .pi-prog-legend { display: flex; gap: 16px; margin-top: 8px; font-size: 12px;
+    color: var(--text-dim); flex-wrap: wrap; }
+  .pi-prog-legend span::before { content: ''; display: inline-block; width: 10px; height: 10px;
+    border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+  .pi-pl-done::before { background: var(--green); }
+  .pi-pl-prog::before { background: var(--orange); }
+  .pi-pl-risk::before { background: var(--red); }
+  .pi-filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .pi-fbtn { padding: 6px 14px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface); color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
+  .pi-fbtn:hover { border-color: var(--accent); color: var(--text); }
+  .pi-fbtn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pi-collapse-btn { margin-left: auto; padding: 6px 14px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface2); color: var(--text-dim); cursor: pointer; transition: all 0.2s; }
+  .pi-collapse-btn:hover { border-color: var(--accent); color: var(--text); }
+  #pi .section-title { font-size: 15px; font-weight: 600; margin: 20px 0 10px;
+    padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  #pi .section-header { display: flex; align-items: center; gap: 10px;
+    cursor: pointer; user-select: none; }
+  #pi .section-header:hover { opacity: 0.85; }
+  .section-group.collapsed table { display: none; }
+  .section-chevron { font-size: 14px; color: var(--text-dim); transition: transform 0.2s;
+    display: inline-block; flex-shrink: 0; }
+  .section-chevron.collapsed { transform: rotate(-90deg); }
+  .section-count { font-size: 12px; font-weight: 500; color: var(--text-dim);
+    background: var(--surface2); padding: 2px 8px; border-radius: 10px;
+    margin-left: auto; white-space: nowrap; }
+  .section-count.complete { color: var(--green); background: rgba(81, 207, 102, 0.15); }
+  .section-count.partial  { color: var(--orange); background: rgba(255, 166, 77, 0.15); }
+  .section-count.at-risk  { color: var(--red); background: rgba(255, 107, 107, 0.15); }
+  .team-badge { display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+    background: var(--surface2); color: var(--cyan); }
+  .status-badge { display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 10px; white-space: nowrap; }
+  .status-done     { background: rgba(81,207,102,0.15);  color: var(--green); }
+  .status-review   { background: rgba(255,217,61,0.15);  color: var(--yellow); }
+  .status-progress { background: rgba(255,166,77,0.15);  color: var(--orange); }
+  .status-todo     { background: rgba(255,107,107,0.15); color: var(--red); }
+  .status-blocked  { background: rgba(255,107,107,0.25); color: var(--red); font-weight: 700; }
+  .status-deferred { background: rgba(177,151,252,0.15); color: var(--purple); }
+  #pi .blocker-row td { background: rgba(255,107,107,0.03); font-size: 12px; }
+  #pi .blocker-row td:first-child { padding-left: 36px; }
+  .blocker-indent { color: var(--text-dim); margin-right: 6px; }
+  #pi .note { font-size: 12px; color: var(--text-dim); font-style: italic; }
+  .pi-summary-line { font-size: 13px; color: var(--text-dim); margin-bottom: 16px;
+    padding: 10px 16px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; }
+  .pi-summary-line strong { color: var(--text); }
+  .pi-sdot { margin: 0 8px; opacity: 0.4; }
+  .pi-donut-wrap { display: flex; gap: 20px; align-items: center; }
+  .pi-donut-legend { display: flex; flex-direction: column; gap: 8px; font-size: 13px; flex: 1; }
+  .pi-dl-item { display: flex; align-items: center; gap: 8px; }
+  .pi-dl-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .pi-dl-label { color: var(--text-dim); }
+  .pi-dl-val { margin-left: auto; font-weight: 600; color: var(--text); }
+
+
+  /* ── Dashboard Overview ──────────────────────────────────────────────── */
+  #dashboardView { animation: fadeIn .25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+  .dash-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+  }
+  @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
+  .dash-team-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px; cursor: pointer; transition: border-color .2s, box-shadow .2s;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .dash-team-card:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent)22; }
+  .dash-team-header {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .dash-team-title { font-size: 15px; font-weight: 700; letter-spacing: -.2px; }
+  .dash-team-sub   { font-size: 12px; color: var(--text-dim); }
+  .dash-cta {
+    font-size: 12px; font-weight: 600; color: var(--accent);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .dash-cta-arrow { transition: transform .2s; }
+  .dash-team-card:hover .dash-cta-arrow { transform: translateX(4px); }
+
+  .dash-body { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 600px) { .dash-body { grid-template-columns: 1fr; } }
+
+  .dash-score-block {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px 18px; background: var(--surface2); border-radius: 10px;
+    border: 1px solid var(--border); min-width: 110px;
+  }
+  .dash-score-num { font-size: 42px; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+  .dash-score-grade {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 7px;
+    font-size: 16px; font-weight: 800; border: 2px solid;
+  }
+  .dash-score-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: .5px; text-align: center; }
+
+  .dash-metrics { display: flex; flex-direction: column; gap: 8px; }
+  .dash-metric-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .dash-kpi {
+    flex: 1; min-width: 80px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+  }
+  .dash-kpi .dk-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: .4px; margin-bottom: 3px; }
+  .dash-kpi .dk-val { font-size: 20px; font-weight: 700; }
+  .dash-kpi.red    .dk-val { color: var(--red); }
+  .dash-kpi.green  .dk-val { color: var(--green); }
+  .dash-kpi.orange .dk-val { color: var(--orange); }
+  .dash-kpi.accent .dk-val { color: var(--accent); }
+  .dash-kpi.yellow .dk-val { color: var(--yellow); }
+
+  .dash-pi-strip {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .dash-pi-strip-label {
+    font-size: 10px; color: var(--text-dim); text-transform: uppercase;
+    letter-spacing: .4px; margin-bottom: 8px; font-weight: 600;
+  }
+  .dash-pi-bar { height: 10px; background: var(--bg); border-radius: 5px;
+    overflow: hidden; display: flex; margin-bottom: 6px; }
+  .dash-pi-seg { height: 100%; min-width: 3px; }
+  .dash-pi-seg.done     { background: var(--green); }
+  .dash-pi-seg.progress { background: var(--orange); }
+  .dash-pi-seg.atrisk   { background: var(--red); }
+  .dash-pi-counts { display: flex; gap: 12px; font-size: 11px; color: var(--text-dim); flex-wrap: wrap; }
+  .dash-pi-counts span::before { content: ''; display: inline-block;
+    width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+  .dash-pic-done::before { background: var(--green); }
+  .dash-pic-prog::before { background: var(--orange); }
+  .dash-pic-risk::before { background: var(--red); }
+
+  /* Open showstoppers panel */
+  .dash-alerts-panel {
+    background: var(--surface); border: 1px solid rgba(255,71,87,.35);
+    border-radius: 12px; padding: 16px; margin-bottom: 20px;
+  }
+  .dash-alerts-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  }
+  .dash-alerts-title {
+    font-size: 13px; font-weight: 700; color: var(--red); text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .dash-alert-row {
+    display: flex; align-items: baseline; gap: 10px; padding: 7px 0;
+    border-bottom: 1px solid var(--border); cursor: pointer; transition: opacity .15s;
+    font-size: 13px;
+  }
+  .dash-alert-row:last-child { border-bottom: none; }
+  .dash-alert-row:hover { opacity: .8; }
+  .dash-alert-key { color: var(--accent); font-weight: 600; white-space: nowrap; font-size: 12px; }
+  .dash-alert-sum { color: var(--text); flex: 1; line-height: 1.35; }
+  .dash-alert-age { color: var(--red); font-size: 11px; white-space: nowrap; font-weight: 600; }
+  .dash-alert-cust { color: var(--text-dim); font-size: 11px; white-space: nowrap; }
+  .dash-no-alerts {
+    text-align: center; padding: 16px; color: var(--green); font-size: 14px; font-weight: 600;
+  }
+
+  /* Detail view back button */
+  .dash-back {
+    display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px;
+    font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;
+    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); transition: border-color .2s;
+  }
+  .dash-back:hover { border-color: var(--accent); }
+
+  /* Help tab */
+  .help-content { max-width: 860px; }
+  .help-section { margin-bottom: 28px; }
+  .help-section h2 {
+    font-size: 15px; font-weight: 700; color: var(--text);
+    margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  .help-section h3 { font-size: 13px; font-weight: 600; color: var(--text-dim); margin-bottom: 8px; margin-top: 14px; }
+  .help-section p { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 8px; }
+  .help-formula {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+    font-size: 12px; color: var(--text); line-height: 1.8; margin: 10px 0;
+  }
+  .help-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  .help-table th {
+    text-align: left; padding: 8px 12px; font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border); background: var(--surface2);
+  }
+  .help-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text-dim); }
+  .help-table td:first-child { font-weight: 600; color: var(--text); }
+  .help-grade-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 5px;
+    font-size: 12px; font-weight: 800; border: 1px solid;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(3px);
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    width: 100%; max-width: 560px; max-height: 80vh; display: flex; flex-direction: column;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .modal-close {
+    background: none; border: none; color: var(--text-dim); cursor: pointer;
+    font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 16px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
+  /* Insight items (used inside modal) */
+  .insight {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 13px; border-radius: 7px; font-size: 13px; line-height: 1.4;
+  }
+  .insight.critical { background: rgba(255,71,87,0.1);   border-left: 3px solid #ff4757; }
+  .insight.warn     { background: rgba(255,159,67,0.1);  border-left: 3px solid #ff9f43; }
+  .insight.good     { background: rgba(81,207,102,0.08); border-left: 3px solid #51cf66; }
+  .insight.info     { background: rgba(108,140,255,0.08); border-left: 3px solid #6c8cff; }
+  .insight .i-icon  { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .insight .i-body  { display: flex; flex-direction: column; gap: 3px; }
+  .insight .i-title { font-weight: 600; color: var(--text); }
+  .insight .i-action { font-size: 12px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>DLP Escalation Dashboard <span>/ Customer Escalations</span></h1>
+    <div class="date-stamp" id="dateStamp"></div>
+  </div>
+</div>
+
+
+<div id="dashboardView">
+  <!-- populated by renderDashboard() -->
+</div>
+
+<div id="detailView" style="display:none">
+<div class="dash-back" onclick="showDashboard()">&#8592; Dashboard</div>
+<div class="controls">
+  <div class="control-group">
+    <label>Time Range</label>
+    <select id="timeRange" onchange="render()">
+      <option value="7">Last 7 days</option>
+      <option value="14">Last 14 days</option>
+      <option value="30" selected>Last 30 days</option>
+      <option value="60">Last 60 days</option>
+      <option value="90">Last 90 days</option>
+      <option value="0">All time (90d data)</option>
+    </select>
+  </div>
+  <div class="sep"></div>
+  <div class="control-group">
+    <label>Severity</label>
+    <select id="severityFilter" onchange="render()">
+      <option value="all">All Severities</option>
+      <option value="Showstopper">Showstopper</option>
+      <option value="Critical">Critical</option>
+      <option value="Major">Major</option>
+    </select>
+  </div>
+  <div class="sep"></div>
+  <div class="control-group">
+    <label>Status</label>
+    <select id="statusFilter" onchange="render()">
+      <option value="all">All Statuses</option>
+      <option value="open">Open / Active</option>
+      <option value="closed">Resolved</option>
+    </select>
+  </div>
+  <div class="sep"></div>
+  <div class="sla-config-title">SLA Targets</div>
+  <div class="sla-field">
+    <label><span class="badge Showstopper">Showstopper</span></label>
+    <input type="number" id="slaShowstopper" value="3" min="1" max="365" onchange="render()">
+    <div class="unit">days</div>
+  </div>
+  <div class="sla-field">
+    <label><span class="badge Critical">Critical</span></label>
+    <input type="number" id="slaCritical" value="7" min="1" max="365" onchange="render()">
+    <div class="unit">days</div>
+  </div>
+  <div class="sla-field">
+    <label><span class="badge Major">Major</span></label>
+    <input type="number" id="slaMajor" value="14" min="1" max="365" onchange="render()">
+    <div class="unit">days</div>
+  </div>
+</div>
+
+<div id="scoreBanner" class="score-banner"></div>
+
+<div class="tab-bar">
+  <button class="tab active" onclick="switchTab('cloud', this)">
+    ☁️  DLP Cloud &nbsp;<span id="cloudBadge" style="font-size:11px;color:var(--text-dim)"></span>
+  </button>
+  <button class="tab" onclick="switchTab('onprem', this)">
+    🖥️  DLP OnPrem &nbsp;<span id="onpremBadge" style="font-size:11px;color:var(--text-dim)"></span>
+  </button>
+  <button class="tab" onclick="switchTab('help', this)">
+    Help
+  </button>
+</div>
+
+<div id="cloud" class="tab-content active">
+  <div class="tab-filter-bar">
+    <span class="tab-filter-label">Project</span>
+    <div class="tab-filter-proj">
+      <button class="proj-btn active" onclick="setProject('cloud','all',this)">All</button>
+      <button class="proj-btn" onclick="setProject('cloud','NEO',this)">NEO</button>
+      <button class="proj-btn" onclick="setProject('cloud','DPS',this)">DPS</button>
+    </div>
+  </div>
+  <div id="cloudStats" class="stats-row"></div>
+  <div class="two-col" style="margin-bottom:20px">
+    <div class="canvas-section">
+      <div class="cs-header">
+        <h3>Reported vs Resolved — by Severity</h3>
+        <button class="insight-btn" onclick="openInsights('rvr','cloud')">💡 Insights</button>
+      </div>
+      <canvas id="cloudRVR"></canvas>
+    </div>
+    <div class="canvas-section">
+      <div class="cs-header">
+        <h3>SLA Compliance — by Severity</h3>
+        <button class="insight-btn" onclick="openInsights('sla','cloud')">💡 Insights</button>
+      </div>
+      <canvas id="cloudSLA"></canvas>
+    </div>
+  </div>
+  <div id="cloudResolution" class="sev-panel"></div>
+  <div class="table-section">
+    <div class="table-header">
+      <h3>Escalation Tickets</h3>
+      <span style="font-size:12px;color:var(--text-dim)">Projects: NEO · DPS</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('cloud','key')">Key <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('cloud','priority')">Severity <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('cloud','status')">Status <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('cloud','customer')">Customer <span class="sort-icon">↕</span></th>
+            <th>Summary</th>
+            <th onclick="sortTable('cloud','assignee')">Assignee <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('cloud','created')">Created <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('cloud','age')">Age / Resolved <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="cloudTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="onprem" class="tab-content">
+  <div class="tab-filter-bar">
+    <span class="tab-filter-label">Project</span>
+    <div class="tab-filter-proj">
+      <button class="proj-btn active" onclick="setProject('onprem','all',this)">All</button>
+      <button class="proj-btn" onclick="setProject('onprem','DLP',this)">DLP</button>
+      <button class="proj-btn" onclick="setProject('onprem','FSM',this)">FSM</button>
+    </div>
+  </div>
+  <div id="onpremStats" class="stats-row"></div>
+  <div class="two-col" style="margin-bottom:20px">
+    <div class="canvas-section">
+      <div class="cs-header">
+        <h3>Reported vs Resolved — by Severity</h3>
+        <button class="insight-btn" onclick="openInsights('rvr','onprem')">💡 Insights</button>
+      </div>
+      <canvas id="onpremRVR"></canvas>
+    </div>
+    <div class="canvas-section">
+      <div class="cs-header">
+        <h3>SLA Compliance — by Severity</h3>
+        <button class="insight-btn" onclick="openInsights('sla','onprem')">💡 Insights</button>
+      </div>
+      <canvas id="onpremSLA"></canvas>
+    </div>
+  </div>
+  <div id="onpremResolution" class="sev-panel"></div>
+  <div class="table-section">
+    <div class="table-header">
+      <h3>Escalation Tickets</h3>
+      <span style="font-size:12px;color:var(--text-dim)">Projects: DLP · FSM</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('onprem','key')">Key <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('onprem','priority')">Severity <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('onprem','status')">Status <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('onprem','customer')">Customer <span class="sort-icon">↕</span></th>
+            <th>Summary</th>
+            <th onclick="sortTable('onprem','assignee')">Assignee <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('onprem','created')">Created <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable('onprem','age')">Age / Resolved <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="onpremTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="help" class="tab-content">
+  <div class="help-content">
+
+    <div class="help-section">
+      <h2>Team Score — How It Works</h2>
+      <p>The Team Score (0–100) measures how well a team is handling customer escalations. It combines four components, each severity-weighted so that Showstopper failures count far more than Major ones.</p>
+      <div class="help-formula">
+TeamScore  =  0.40 × ComplianceScore
+           +  0.25 × SpeedScore
+           +  0.25 × BacklogScore
+           +  TrendBonus            ← −5 to +5 pts
+
+Severity weights:  Showstopper = 5 · Critical = 3 · Major = 1
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h2>Component Definitions</h2>
+
+      <h3>1. SLA Compliance Score (40%)</h3>
+      <p>The most important signal — are tickets being resolved within the committed deadline?</p>
+      <div class="help-formula">
+comp_p  =  tickets_met_SLA_p  /  (closed_p  +  open_past_SLA_p)
+
+ComplianceScore  =  (5·comp_SS  +  3·comp_CR  +  1·comp_MA)  /  9  ×  100
+      </div>
+      <p>Open tickets already past their SLA deadline count as definite breaches, not just "pending". This prevents a team from hiding poor performance behind unresolved tickets.</p>
+
+      <h3>2. Speed Score (25%)</h3>
+      <p>How efficiently are tickets resolved relative to their SLA target? Resolving faster than the target earns full marks; resolving at 2× the target earns 50%.</p>
+      <div class="help-formula">
+speed_p  =  min( SLA_target_p  /  MTTR_p ,  1.0 )   ← capped at 1
+
+SpeedScore  =  (5·speed_SS  +  3·speed_CR  +  1·speed_MA)  /  9  ×  100
+      </div>
+
+      <h3>3. Backlog Health Score (25%)</h3>
+      <p>Penalizes teams that let open tickets accumulate past their SLA deadline without resolving them.</p>
+      <div class="help-formula">
+overdue_ratio_p  =  open_past_SLA_p  /  max(total_open_p, 1)
+
+BacklogScore  =  (5·(1−over_SS)  +  3·(1−over_CR)  +  1·(1−over_MA))  /  9  ×  100
+      </div>
+
+      <h3>4. Trend Bonus (±5 pts)</h3>
+      <p>Rewards improvement and penalizes regression. Computed by comparing average MTTR across the two most recent time buckets, severity-weighted.</p>
+      <div class="help-formula">
+TrendBonus  =  +5   (MTTR improving  > 10% vs previous period)
+            =   0   (stable,  ±10%)
+            =  −5   (MTTR worsening  > 10% vs previous period)
+      </div>
+    </div>
+
+    <div class="help-section">
+      <h2>Grade Scale</h2>
+      <table class="help-table">
+        <thead><tr><th>Grade</th><th>Score</th><th>Meaning</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><span class="help-grade-pill" style="background:#51cf6620;color:#51cf66;border-color:#51cf6655">A</span></td><td>85 – 100</td><td>Excellent — team is consistently meeting or exceeding SLA</td><td>Maintain process, share best practices</td></tr>
+          <tr><td><span class="help-grade-pill" style="background:#66d9e820;color:#66d9e8;border-color:#66d9e855">B</span></td><td>70 – 84</td><td>Good — minor gaps in compliance or backlog</td><td>Review 1–2 recurring miss patterns</td></tr>
+          <tr><td><span class="help-grade-pill" style="background:#ffd93d20;color:#ffd93d;border-color:#ffd93d55">C</span></td><td>55 – 69</td><td>Needs improvement — compliance or backlog has visible issues</td><td>Set improvement targets per severity</td></tr>
+          <tr><td><span class="help-grade-pill" style="background:#ffa64d20;color:#ffa64d;border-color:#ffa64d55">D</span></td><td>40 – 54</td><td>At risk — SLA breaches are frequent, open tickets stacking up</td><td>Escalate to management, review capacity</td></tr>
+          <tr><td><span class="help-grade-pill" style="background:#ff6b6b20;color:#ff6b6b;border-color:#ff6b6b55">F</span></td><td>0 – 39</td><td>Critical — team is consistently failing on escalations</td><td>Immediate intervention required</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="help-section">
+      <h2>SLA Targets</h2>
+      <p>Default SLA targets are set based on severity impact. You can adjust them in the filter bar above — all scores and charts update in real time.</p>
+      <table class="help-table">
+        <thead><tr><th>Severity</th><th>Default SLA</th><th>Weight</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge Showstopper">Showstopper</span></td><td>3 days</td><td>5×</td><td>Customer-impacting outage or total loss of function — requires immediate R&amp;D response</td></tr>
+          <tr><td><span class="badge Critical">Critical</span></td><td>7 days</td><td>3×</td><td>Major feature broken, significant customer impact — high urgency but workaround may exist</td></tr>
+          <tr><td><span class="badge Major">Major</span></td><td>14 days</td><td>1×</td><td>Functional issue with manageable impact — standard resolution timeline</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="help-section">
+      <h2>Data Source</h2>
+      <p>Data is fetched from Jira (forcepoint.atlassian.net) for the <strong>Escalation</strong> issue type across four projects:</p>
+      <table class="help-table">
+        <thead><tr><th>Team</th><th>Projects</th><th>Tab</th></tr></thead>
+        <tbody>
+          <tr><td>DLP Cloud</td><td>NEO · DPS</td><td>☁️ DLP Cloud</td></tr>
+          <tr><td>DLP OnPrem</td><td>DLP · FSM</td><td>🖥️ DLP OnPrem</td></tr>
+        </tbody>
+      </table>
+      <p>The ticket table at the bottom of each tab is the raw data source. Use the Time Range filter to compare performance across different periods.</p>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /detailView -->
+<div id="insightsModal" class="modal-overlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span id="modalTitle" class="modal-title"></span>
+      <button class="modal-close" onclick="closeInsights()">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+// Data fetched from Jira (forcepoint.atlassian.net) — last 90 days, issuetype = Escalation
+// Cloud DLP: projects NEO + DPS | OnPrem DLP: projects DLP + FSM
+// Data as of: 2026-03-29
+// Last synced from Confluence (forcepoint.atlassian.net) — release notes & stakeholder sync pages
+
+const cloudData = [
+  {key:"NEO-19693", customer:"IHI Asia Pacific Pte Ltd", summary:"[POC] Files Transferred report is missing from DUP portal", priority:"Major", status:"Open", created:"2026-03-17T13:26:44.168-0700", resolutiondate:null, assignee:"Unassigned", project:"NEO"},
+  {key:"NEO-19692", customer:"BBVA", summary:"[BBVA] DLP CLOUD PORTAL - DLP ALERTS > RULE FILTER NOT WORKING PROPERLY", priority:"Major", status:"Open", created:"2026-03-17T06:26:37.681-0700", resolutiondate:null, assignee:"Wolf, Tali", project:"NEO"},
+  {key:"NEO-19667", customer:"Evergent Technologies", summary:"Getting Status Code 500 when logging or working in DUP console", priority:"Critical", status:"Open", created:"2026-03-12T15:16:47.956-0700", resolutiondate:null, assignee:"Hazan, Shahal", project:"NEO"},
+  {key:"DPS-5170",  customer:"BBVA", summary:"[BBVA] Rule not matched when using Domain or Business Unit in Destination section for EMAIL DLP cloud", priority:"Critical", status:"Open", created:"2026-03-11T06:33:35.137-0700", resolutiondate:null, assignee:"Ben Naim, Tal", project:"DPS"},
+  {key:"NEO-19650", customer:"BBVA", summary:"[BBVA] DLP Email Notification not working randomly", priority:"Showstopper", status:"Closed", created:"2026-03-11T02:44:08.218-0700", resolutiondate:"2026-03-23T00:00:00.000-0700", assignee:"Mark, Afik", project:"NEO"},
+  {key:"NEO-19641", customer:"BBVA", summary:"Cloud DLP does not remove Cloud Applications that have been Deleted from CASB (App Security)", priority:"Major", status:"Open", created:"2026-03-10T03:16:27.989-0700", resolutiondate:null, assignee:"Hazan, Shahal", project:"NEO"},
+  {key:"NEO-19618", customer:"BBVA", summary:"[BBVA] DLP Cloud Portal - HTTP 500 on token refresh, portal unusable after session expiry", priority:"Critical", status:"Closed", created:"2026-03-08T01:43:12.741-0800", resolutiondate:"2026-03-11T07:15:50.743-0700", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19604", customer:"—", summary:"me-central-1 is down for DUP", priority:"Showstopper", status:"Closed", created:"2026-03-04T12:59:28.284-0800", resolutiondate:"2026-03-08T00:41:30.887-0800", assignee:"Hadar, Eran", project:"NEO"},
+  {key:"NEO-19603", customer:"OneSavings Bank", summary:"Update email settings in DLP cloud failed", priority:"Major", status:"Open", created:"2026-03-04T08:18:46.959-0800", resolutiondate:null, assignee:"Salamon, Oran", project:"NEO"},
+  {key:"NEO-19595", customer:"—", summary:"Endpoint download from CSG portal failing (404 on onboarding API)", priority:"Critical", status:"Closed", created:"2026-03-03T01:05:20.091-0800", resolutiondate:"2026-03-03T09:18:51.041-0800", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19564", customer:"Joyson Safety Systems", summary:"[Joyson Safety Systems] Eventlog flooded with Schannel TLS errors (c1c2sj3lm55h1g.credentials.iot.us-east-1.amazonaws.com)", priority:"Showstopper", status:"Closed", created:"2026-02-23T04:47:06.270-0800", resolutiondate:"2026-03-23T00:00:00.000-0700", assignee:"Salti, Hayim", project:"NEO"},
+  {key:"NEO-19557", customer:"Pell Frischmann", summary:"[Pell Frischmann] customer Unable to save changes in Endpoint management in DLP Portal", priority:"Critical", status:"Closed", created:"2026-02-23T00:24:04.465-0800", resolutiondate:"2026-03-10T03:51:15.707-0700", assignee:"Salti, Hayim", project:"NEO"},
+  {key:"NEO-19534", customer:"Ministry of Interior Israel", summary:"[Ministry of Interior Israel] DLP Cloud Portal - Access Issues on DLP SaaS Cloud Portal", priority:"Critical", status:"Open", created:"2026-02-22T03:22:57.912-0800", resolutiondate:null, assignee:"Matok, Amit", project:"NEO"},
+  {key:"NEO-19530", customer:"BBVA", summary:"[BBVA] Error When Viewing Matched Content (Eye Icon) for Some DLP Incidents", priority:"Critical", status:"Closed", created:"2026-02-20T08:49:40.578-0800", resolutiondate:"2026-03-18T07:31:26.718-0700", assignee:"Twili, Eran", project:"NEO"},
+  {key:"NEO-19529", customer:"BBVA", summary:"[BBVA] Rule not matched when using Domain or Business Unit in Destination section for EMAIL DLP cloud", priority:"Showstopper", status:"IN REFINEMENT", created:"2026-02-20T08:11:10.394-0800", resolutiondate:null, assignee:"Hadar, Eran", project:"NEO"},
+  {key:"NEO-19528", customer:"BBVA", summary:"[BBVA] Status, Assignee, and Severity Fields Not Displayed in Incident Details on Initial Load", priority:"Major", status:"In Progress", created:"2026-02-20T06:05:41.132-0800", resolutiondate:null, assignee:"Mark, Afik", project:"NEO"},
+  {key:"NEO-19524", customer:"BBVA", summary:"Can't delete a classifier", priority:"Critical", status:"Closed", created:"2026-02-19T06:33:52.799-0800", resolutiondate:"2026-02-24T00:46:00.247-0800", assignee:"Hadar, Eran", project:"NEO"},
+  {key:"NEO-19454", customer:"—", summary:"Customer cannot connect to their cloud console", priority:"Critical", status:"Closed", created:"2026-02-10T15:22:30.651-0800", resolutiondate:"2026-02-18T00:20:32.735-0800", assignee:"Eisner, Amichay", project:"NEO"},
+  {key:"NEO-19451", customer:"—", summary:"Cloud DLP - Missing Destination Domain Details in Some Alerts", priority:"Major", status:"Blocked", created:"2026-02-10T06:46:15.390-0800", resolutiondate:null, assignee:"Matok, Amit", project:"NEO"},
+  {key:"NEO-19448", customer:"BBVA", summary:"[Enterprise-BBVA] Sometimes Cloud alerts are not created when DLP policy rules are triggered", priority:"Critical", status:"Closed", created:"2026-02-10T00:50:08.379-0800", resolutiondate:"2026-03-08T07:30:57.525-0700", assignee:"Matok, Amit", project:"NEO"},
+  {key:"NEO-19439", customer:"CRIF High Mark Credit", summary:"[CRIF High Mark Credit] Unable to download evidence against the alerts", priority:"Critical", status:"Closed", created:"2026-02-09T04:08:20.390-0800", resolutiondate:"2026-03-16T06:06:49.266-0700", assignee:"Hazan, Shahal", project:"NEO"},
+  {key:"NEO-19413", customer:"CRIF High Mark Credit", summary:"Unable to download evidence against the alerts", priority:"Critical", status:"Closed", created:"2026-02-04T02:50:07.984-0800", resolutiondate:"2026-02-08T03:55:05.880-0800", assignee:"Hazan, Shahal", project:"NEO"},
+  {key:"NEO-19411", customer:"Fortune Information System Corp", summary:"[Fortune Information System Corp] Emails are not getting delivered", priority:"Critical", status:"Closed", created:"2026-02-03T10:08:31.219-0800", resolutiondate:"2026-02-06T09:33:55.255-0800", assignee:"R, Sunil Kumar", project:"NEO"},
+  {key:"NEO-19350", customer:"BBVA", summary:"[BBVA] Policy deployment fails", priority:"Showstopper", status:"Closed", created:"2026-01-28T04:56:25.302-0800", resolutiondate:"2026-02-01T00:39:17.020-0800", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19306", customer:"BBVA", summary:"[BBVA] Search results are case sensitive under Users tab", priority:"Major", status:"Closed", created:"2026-01-21T03:35:19.581-0800", resolutiondate:"2026-03-03T07:42:18.367-0800", assignee:"Salti, Hayim", project:"NEO"},
+  {key:"NEO-19303", customer:"Blue Cloud", summary:"[Blue Cloud] Endpoint Profile Update Failure & DLP Policy Deployment Failure", priority:"Major", status:"Closed", created:"2026-01-20T23:05:03.223-0800", resolutiondate:"2026-02-15T07:34:11.933-0800", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19302", customer:"OneSavings Bank", summary:"[OneSavings Bank Plc] MFA Reset Not Working for User", priority:"Major", status:"Closed", created:"2026-01-20T22:47:50.210-0800", resolutiondate:"2026-02-23T04:29:54.995-0800", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19301", customer:"—", summary:"Incorrect CSG tenant configured in Portal", priority:"Critical", status:"Closed", created:"2026-01-20T13:15:42.486-0800", resolutiondate:"2026-03-03T01:08:17.940-0800", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19183", customer:"BBVA", summary:"[BBVA] Some alerts do not have forensics/classifier metadata 404", priority:"Critical", status:"Closed", created:"2026-01-06T07:03:29.599-0800", resolutiondate:"2026-02-25T04:52:08.661-0800", assignee:"Melnik, Alexei", project:"NEO"},
+  {key:"NEO-19176", customer:"BBVA", summary:"[BBVA] Request failed with status code 500 message when clicking on DLP alerts in Cloud DLP portal", priority:"Major", status:"Closed", created:"2026-01-05T06:12:38.518-0800", resolutiondate:"2026-02-25T06:18:35.731-0800", assignee:"Chanauria, Prakhar", project:"NEO"},
+  {key:"NEO-19122", customer:"BBVA", summary:"[BBVA] DLP CLOUD - Cannot see triggered data for DLP exceptions", priority:"Showstopper", status:"In Progress", created:"2025-12-31T12:20:14.966-0800", resolutiondate:"2026-02-15T22:49:43.922-0800", assignee:"Wolf, Tali", project:"NEO"},
+  {key:"DPS-4909",  customer:"ENBD", summary:"[ENBD] CPE POD went down for 15-minutes, causing discrepancies in email traffic (internal)", priority:"Critical", status:"Closed", created:"2025-12-23T02:44:12.583-0800", resolutiondate:"2025-12-23T02:49:04.453-0800", assignee:"Relevy, Shai", project:"DPS"},
+  {key:"DPS-4897",  customer:"ENBD", summary:"[ENBD] CPE POD went down for 15-minutes, causing discrepancies in email traffic", priority:"Critical", status:"Closed", created:"2025-12-21T06:56:06.668-0800", resolutiondate:"2026-02-23T04:42:08.083-0800", assignee:"Melnik, Alexei", project:"DPS"}
+];
+
+const onpremData = [
+  {key:"DLP-34022", customer:"United Overseas Bank", summary:"[United Overseas Bank] v10.4: Alert/log feature on FP DLP Backup failure does not work", priority:"Major", status:"Open", created:"2026-03-18T23:45:25.966-0700", resolutiondate:null, assignee:"Srur, Saar", project:"DLP"},
+  {key:"DLP-34011", customer:"Docutek Solutions", summary:"[10.5][Docutek Solutions, Inc.] Linking service test connection is failed", priority:"Critical", status:"READY TO IMPLEMENT", created:"2026-03-18T08:21:30.219-0700", resolutiondate:null, assignee:"Srur, Saar", project:"DLP"},
+  {key:"DLP-33970", customer:"Line - Yahoo Corporation", summary:"[Line - Yahoo Corporation] DPS Incidents Missing in FSM UI for Feb 3–5", priority:"Critical", status:"Open", created:"2026-03-12T13:20:44.597-0700", resolutiondate:null, assignee:"R, Sunil Kumar", project:"DLP"},
+  {key:"DLP-33948", customer:"Docutek Solutions", summary:"[Docutek Solutions, Inc.] Linking service test connection is getting failed from DLP 10.4", priority:"Critical", status:"In Progress", created:"2026-03-10T03:43:02.802-0700", resolutiondate:null, assignee:"Srur, Saar", project:"DLP"},
+  {key:"DLP-33890", customer:"AT&T", summary:"[AT&T] Unable to Import CSV Directory When Password Length Exceeds 40 Characters", priority:"Major", status:"Closed", created:"2026-03-05T00:50:55.432-0800", resolutiondate:"2026-03-09T11:17:58.961-0700", assignee:"Srur, Saar", project:"DLP"},
+  {key:"DLP-33880", customer:"Walmart", summary:"[Walmart] Procedure for clean deleted AD records from the DB", priority:"Major", status:"Closed", created:"2026-03-03T14:42:31.426-0800", resolutiondate:"2026-03-17T01:09:37.152-0700", assignee:"Eisner, Amichay", project:"DLP"},
+  {key:"DLP-33867", customer:"AT&T", summary:"[AT&T] Endpoint Discovery Tasks screen crash since upgrade to 10.4 (orphan UUID selection not migrated)", priority:"Major", status:"Closed", created:"2026-03-02T07:26:53.669-0800", resolutiondate:"2026-03-04T00:38:57.105-0800", assignee:"R, Sunil Kumar", project:"DLP"},
+  {key:"DLP-33863", customer:"ENBD", summary:"[ENBD] Received a bunch of DLP time-outs for emails processed via DPS", priority:"Critical", status:"Open", created:"2026-03-02T06:12:18.912-0800", resolutiondate:null, assignee:"Sastiel, Gadi", project:"DLP"},
+  {key:"DLP-33831", customer:"Banco Itau", summary:"[Banco Itau] HealthCheck broken after upgrading Protector 10.2 ISO → 10.4 Software Package due to incomplete Python3-venv folder", priority:"Critical", status:"In Progress", created:"2026-02-25T11:55:27.484-0800", resolutiondate:null, assignee:"Scarlat, Shay", project:"DLP"},
+  {key:"DLP-33828", customer:"National Central", summary:'[National Central] "Custom Computers" filter for incidents includes both AD and custom computers', priority:"Critical", status:"Open", created:"2026-02-25T10:23:47.341-0800", resolutiondate:null, assignee:"R, Sunil Kumar", project:"DLP"},
+  {key:"DLP-33814", customer:"United Overseas Bank", summary:"[10.2] [United Overseas Bank Ltd] RCA & future prevention measure plan for all 3 ICAP Protectors down at a time", priority:"Critical", status:"In Progress", created:"2026-02-25T00:21:57.904-0800", resolutiondate:null, assignee:"Chanauria, Prakhar", project:"DLP"},
+  {key:"DLP-33805", customer:"AT&T", summary:"[AT&T] No events in FBA (Everfox EverInsight) formerly Forcepoint Behavioral Analytics (DDP)", priority:"Critical", status:"In Progress", created:"2026-02-24T03:05:36.095-0800", resolutiondate:null, assignee:"Srur, Saar", project:"DLP"},
+  {key:"DLP-33797", customer:"Barikat Internet", summary:"[Barikat Internet] MacOS Agent Disconnected - EPC Issue", priority:"Critical", status:"In Progress", created:"2026-02-23T04:20:34.006-0800", resolutiondate:null, assignee:"Adler, Steve", project:"DLP"},
+  {key:"DLP-33777", customer:"—", summary:"Huge memory spikes on endpoint server PE", priority:"Major", status:"Closed", created:"2026-02-20T09:40:34.060-0800", resolutiondate:"2026-03-06T12:00:57.278-0800", assignee:"Manoim, Mark", project:"DLP"},
+  {key:"DLP-33769", customer:"mBank SA", summary:"[10.2] [mBank SA] Large Files text extraction", priority:"Major", status:"Closed", created:"2026-02-18T10:38:54.463-0800", resolutiondate:"2026-03-09T22:47:57.493-0700", assignee:"Chanauria, Prakhar", project:"DLP"},
+  {key:"DLP-33755", customer:"AT&T", summary:"[AT&T] Exceptions aren't working since upgrading to 10.4", priority:"Critical", status:"Closed", created:"2026-02-16T08:34:19.006-0800", resolutiondate:"2026-03-18T00:30:16.126-0700", assignee:"Ayger, Asi", project:"DLP"},
+  {key:"DLP-33752", customer:"Zenith Bank", summary:"[Zenith Bank] OCR extraction failed for specific image", priority:"Critical", status:"In Progress", created:"2026-02-16T02:31:54.528-0800", resolutiondate:null, assignee:"Salamon, Oran", project:"DLP"},
+  {key:"DLP-33727", customer:"—", summary:"Username resource not returned back from RRDB on MacOS with classifier 10.2 and later", priority:"Major", status:"Closed", created:"2026-02-12T04:18:09.816-0800", resolutiondate:"2026-02-19T06:29:26.074-0800", assignee:"Atias, David", project:"DLP"},
+  {key:"DLP-33719", customer:"Synapxe", summary:"Incidents detected in 9.1.26 but notification sent after FSM rebooted in 26.1.26", priority:"Critical", status:"Closed", created:"2026-02-11T08:18:16.091-0800", resolutiondate:"2026-03-08T03:36:14.884-0700", assignee:"Salamon, Oran", project:"DLP"},
+  {key:"DLP-33711", customer:"Lendingkart", summary:"[10.3] [Lendingkart] DPS incidents and forensics download job stuck occasionally", priority:"Major", status:"In Progress", created:"2026-02-11T02:25:45.920-0800", resolutiondate:null, assignee:"R, Sunil Kumar", project:"DLP"},
+  {key:"DLP-33686", customer:"BANKINTER S.A.", summary:"[BANKINTER S.A.] DUP Severity Reset to LOW on Duplicate Exception Creation in DLP v10.4", priority:"Major", status:"Closed", created:"2026-02-10T03:47:36.787-0800", resolutiondate:"2026-02-12T07:52:41.031-0800", assignee:"Huszcza, Yair (Pawel)", project:"DLP"},
+  {key:"DLP-33626", customer:"—", summary:"ICAP Protector 10.4 not blocking ChatGPT traffic", priority:"Critical", status:"In Progress", created:"2026-02-04T11:37:52.556-0800", resolutiondate:null, assignee:"Eisner, Amichay", project:"DLP"},
+  {key:"DLP-33593", customer:"—", summary:"Using pre defined policies of Mexican RFC data, RFC data not caught", priority:"Major", status:"Closed", created:"2026-02-02T04:42:02.883-0800", resolutiondate:"2026-02-15T05:53:22.799-0800", assignee:"Simhi, Ohad", project:"DLP"},
+  {key:"DLP-33560", customer:"PwC", summary:"[PwC] policy xml not updated with correct group ID even after successful deployment post 10.4 upgrade", priority:"Critical", status:"Closed", created:"2026-01-30T13:22:15.744-0800", resolutiondate:"2026-02-04T08:40:24.242-0800", assignee:"Eisner, Amichay", project:"DLP"},
+  {key:"DLP-33546", customer:"e-Xpert Solutions", summary:"[e-Xpert Solutions] Protector's CPU Usage increasing over time", priority:"Critical", status:"Closed", created:"2026-01-28T03:36:23.886-0800", resolutiondate:"2026-02-12T00:41:24.943-0800", assignee:"Matok, Amit", project:"DLP"},
+  {key:"DLP-33539", customer:"Bank BJB", summary:"[Bank BJB] Status Connection Agent F1E DLP Disconnected and Telnet Intermittent", priority:"Critical", status:"Closed", created:"2026-01-27T04:05:20.514-0800", resolutiondate:"2026-02-19T01:50:21.767-0800", assignee:"Chanauria, Prakhar", project:"DLP"},
+  {key:"DLP-33418", customer:"Ngern tid lor", summary:"[Ngern tid lor public company limited] PDF Thai Keyphrases Not Detected Due to Incorrect Text Extraction", priority:"Critical", status:"In Progress", created:"2026-01-20T09:58:27.078-0800", resolutiondate:null, assignee:"R, Sunil Kumar", project:"DLP"},
+  {key:"DLP-33321", customer:"—", summary:"Using cumulative matches, old incident changed from block to permitted in the FSM", priority:"Major", status:"Closed", created:"2026-01-18T02:53:18.227-0800", resolutiondate:"2026-03-05T03:31:59.622-0800", assignee:"Ayger, Asi", project:"DLP"},
+  {key:"DLP-33328", customer:"ENBD", summary:"[ENBD] Potential CPE memory leak", priority:"Critical", status:"Closed", created:"2026-01-14T02:56:14.616-0800", resolutiondate:"2026-01-28T07:41:00.436-0800", assignee:"Melnik, Alexei", project:"DLP"},
+  {key:"DLP-33295", customer:"Synapxe", summary:"[Synapxe] [ICAP] OCR Extraction takes more time in 10.4 Protector than 10.3 causing timeout", priority:"Critical", status:"In Progress", created:"2026-01-14T02:21:01.128-0800", resolutiondate:null, assignee:"Chanauria, Prakhar", project:"DLP"},
+  {key:"DLP-33195", customer:"ENBD", summary:"[10.2] [ENBD] Download forensics from DPS environment job are stuck", priority:"Critical", status:"Closed", created:"2026-01-07T05:21:23.406-0800", resolutiondate:"2026-03-04T08:33:21.128-0800", assignee:"Chanauria, Prakhar", project:"DLP"},
+  {key:"DLP-33194", customer:"United Overseas Bank", summary:"[United Overseas Bank Ltd] Quarantine notifications not sent to Manager due to SMTP server full", priority:"Critical", status:"Closed", created:"2026-01-07T04:34:57.781-0800", resolutiondate:"2026-01-08T08:48:04.745-0800", assignee:"Detkov, Vadim", project:"DLP"},
+  {key:"DLP-33181", customer:"Magarah", summary:"[Magarah] Customer's regex pattern for Arabic Numerals doesn't work", priority:"Major", status:"Closed", created:"2026-01-07T00:26:23.353-0800", resolutiondate:"2026-02-10T22:43:20.265-0800", assignee:"Chanauria, Prakhar", project:"DLP"},
+  {key:"DLP-33165", customer:"—", summary:"DLP doesn't launch after upgrade to FSM 10.4 due to scheduled report migration & UUID type change", priority:"Major", status:"Closed", created:"2026-01-06T06:41:18.069-0800", resolutiondate:"2026-02-03T02:13:42.857-0800", assignee:"Detkov, Vadim", project:"DLP"},
+  {key:"DLP-33127", customer:"Multiple", summary:"Critical: 2026 Calendar Not Available in Incident Reports and Discovery Scan Scheduler", priority:"Critical", status:"Closed", created:"2026-01-01T22:51:41.773-0800", resolutiondate:"2026-01-22T20:50:02.388-0800", assignee:"Ahmad, Parvez", project:"DLP"},
+  {key:"DLP-33114", customer:"Qatar Airways", summary:"Searching in Google for non-US language phrases results in Attachment.txt being uploaded", priority:"Critical", status:"Closed", created:"2025-12-30T22:59:25.636-0800", resolutiondate:"2026-01-28T21:23:24.835-0800", assignee:"Kekatpure, Vineet", project:"DLP"},
+  {key:"DLP-33030", customer:"e-Xpert Solutions", summary:"[e-Xpert Solutions] Protector's CPU Usage increasing over time (recurrence)", priority:"Critical", status:"Closed", created:"2025-12-21T03:25:16.934-0800", resolutiondate:"2026-01-01T04:02:14.011-0800", assignee:"Matok, Amit", project:"DLP"},
+  {key:"DLP-33019", customer:"HELLENIC BANK", summary:"[HELLENIC BANK] User directory from csv does not get imported", priority:"Major", status:"Closed", created:"2025-12-19T12:50:02.727-0800", resolutiondate:"2025-12-30T02:50:19.109-0800", assignee:"Srur, Saar", project:"DLP"},
+  {key:"DLP-33018", customer:"Akbank", summary:"[Akbank] DLP Incident - No matched values were found", priority:"Major", status:"In Progress", created:"2025-12-19T06:44:38.967-0800", resolutiondate:null, assignee:"Hasson, Itzhak", project:"DLP"}
+];
+
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
+
+const NOW = new Date('2026-03-29T00:00:00');
+const JIRA_BASE = 'https://forcepoint.atlassian.net/browse/';
+
+function daysDiff(a, b) {
+  return (b - a) / (1000 * 60 * 60 * 24);
+}
+
+function resolutionDays(t) {
+  if (!t.resolutiondate) return null;
+  return daysDiff(new Date(t.created), new Date(t.resolutiondate));
+}
+
+function ageDays(t) {
+  const ref = t.resolutiondate ? new Date(t.resolutiondate) : NOW;
+  return daysDiff(new Date(t.created), ref);
+}
+
+function isOpenStatus(s) {
+  const u = s.toLowerCase();
+  return !['closed', 'resolved', 'done', 'fixed'].includes(u);
+}
+
+function statusClass(s) {
+  const u = s.toLowerCase();
+  if (['closed','resolved','done','fixed'].includes(u)) return 'closed';
+  if (['in progress','in refinement'].includes(u)) return 'inprogress';
+  if (u === 'blocked') return 'blocked';
+  if (u === 'open') return 'open';
+  return 'other';
+}
+
+function fmt(n) { return n.toFixed(1); }
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function fmtDays(d) {
+  if (d === null) return '—';
+  if (d < 1) return '< 1 day';
+  if (d < 2) return '1 day';
+  return Math.round(d) + ' days';
+}
+
+function priorityOrder(p) {
+  return {Showstopper:0, Critical:1, Major:2}[p] ?? 99;
+}
+
+// ─── SLA ──────────────────────────────────────────────────────────────────────
+
+function getSla() {
+  return {
+    Showstopper: Math.max(1, parseInt(document.getElementById('slaShowstopper').value) || 3),
+    Critical:    Math.max(1, parseInt(document.getElementById('slaCritical').value)    || 7),
+    Major:       Math.max(1, parseInt(document.getElementById('slaMajor').value)       || 14)
+  };
+}
+
+// ─── CHART INSTANCES ──────────────────────────────────────────────────────────
+const charts = {};
+
+const CHART_DEFAULTS = {
+  responsive: true,
+  maintainAspectRatio: true,
+  aspectRatio: 3,
+  plugins: {
+    legend: {
+      labels: { color: '#8b90a0', font: { size: 12 }, padding: 16 }
+    }
+  },
+  scales: {
+    x: { ticks: { color: '#8b90a0', font: { size: 12 } }, grid: { color: '#2d3141' } },
+    y: { ticks: { color: '#8b90a0', precision: 0, font: { size: 12 } }, grid: { color: '#2d3141' }, beginAtZero: true }
+  }
+};
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
+
+// Chart 1 — Reported vs Resolved stacked bar (Resolved + Open = Total)
+function renderRVRChart(data, canvasId) {
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+
+  const resolved = PRIORITIES.map(p => data.filter(t => t.priority === p && !isOpenStatus(t.status)).length);
+  const open     = PRIORITIES.map(p => data.filter(t => t.priority === p &&  isOpenStatus(t.status)).length);
+
+  destroyChart(canvasId);
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  charts[canvasId] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: PRIORITIES,
+      datasets: [
+        {
+          label: 'Resolved',
+          data: resolved,
+          backgroundColor: 'rgba(81,207,102,0.8)',
+          borderColor: '#51cf66',
+          borderWidth: 1.5, borderRadius: 4
+        },
+        {
+          label: 'Still Open',
+          data: open,
+          backgroundColor: 'rgba(255,71,87,0.8)',
+          borderColor: '#ff4757',
+          borderWidth: 1.5, borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        ...CHART_DEFAULTS.plugins,
+        tooltip: {
+          callbacks: {
+            afterBody(items) {
+              const i = items[0].dataIndex;
+              const total = resolved[i] + open[i];
+              const pct   = total > 0 ? Math.round(resolved[i] / total * 100) : 0;
+              const sla   = getSla();
+              return [`Total reported: ${total}`, `Resolved: ${pct}%`, `SLA target: ${sla[PRIORITIES[i]]} days`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b90a0' }, grid: { color: '#2d3141' } },
+        y: { ticks: { color: '#8b90a0', precision: 0 }, grid: { color: '#2d3141' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Chart 2 — SLA Compliance grouped bar (4 segments per severity)
+function renderSlaChart(data, canvasId) {
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+  const sla = getSla();
+
+  const closedMet = [], closedBreached = [], openInSla = [], openOverSla = [];
+
+  PRIORITIES.forEach(p => {
+    const tickets = data.filter(t => t.priority === p);
+    const target  = sla[p];
+    let cMet = 0, cBreach = 0, oIn = 0, oOver = 0;
+
+    tickets.forEach(t => {
+      if (!isOpenStatus(t.status)) {
+        (resolutionDays(t) ?? 0) <= target ? cMet++ : cBreach++;
+      } else {
+        ageDays(t) <= target ? oIn++ : oOver++;
+      }
+    });
+
+    closedMet.push(cMet); closedBreached.push(cBreach);
+    openInSla.push(oIn); openOverSla.push(oOver);
+  });
+
+  destroyChart(canvasId);
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  charts[canvasId] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: PRIORITIES,
+      datasets: [
+        { label: 'Closed — Met SLA',      data: closedMet,     backgroundColor: 'rgba(81,207,102,0.7)',   borderColor: '#51cf66', borderWidth: 1.5, borderRadius: 3 },
+        { label: 'Closed — Breached SLA', data: closedBreached, backgroundColor: 'rgba(255,166,77,0.75)',  borderColor: '#ffa64d', borderWidth: 1.5, borderRadius: 3 },
+        { label: 'Open — Within SLA',     data: openInSla,     backgroundColor: 'rgba(108,140,255,0.6)',  borderColor: '#6c8cff', borderWidth: 1.5, borderRadius: 3 },
+        { label: 'Open — Past SLA ⚠',     data: openOverSla,   backgroundColor: 'rgba(255,71,87,0.85)',  borderColor: '#ff4757', borderWidth: 1.5, borderRadius: 3 }
+      ]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        ...CHART_DEFAULTS.plugins,
+        tooltip: {
+          callbacks: {
+            afterBody(items) {
+              const p = PRIORITIES[items[0].dataIndex];
+              const total = data.filter(t => t.priority === p).length;
+              const met   = closedMet[items[0].dataIndex];
+              const pct   = total > 0 ? Math.round((met / total) * 100) : 0;
+              return [`SLA target: ${sla[p]} days`, `Closed+Met: ${pct}% of total`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b90a0' }, grid: { color: '#2d3141' } },
+        y: { ticks: { color: '#8b90a0', precision: 0 }, grid: { color: '#2d3141' }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const sortState   = { cloud: {col:'priority', dir:1}, onprem: {col:'priority', dir:1} };
+const projectFilter = { cloud: 'all', onprem: 'all' };
+let activeTab = 'cloud';
+
+function setProject(tab, proj, btn) {
+  projectFilter[tab] = proj;
+  btn.closest('.tab-filter-proj').querySelectorAll('.proj-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeTab = tab;
+  render();
+}
+
+// ─── TEAM SCORE ───────────────────────────────────────────────────────────────
+
+function computeTeamScore(data) {
+  if (!data.length) return null;
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+  const W = { Showstopper: 5, Critical: 3, Major: 1 };
+  const slaVals = getSla();
+  const trend   = computeMTTRTrend(data);
+
+  let compW = 0, compSum = 0, speedW = 0, speedSum = 0, backlogW = 0, backlogSum = 0;
+
+  PRIORITIES.forEach(p => {
+    const w      = W[p];
+    const target = slaVals[p];
+    const all    = data.filter(t => t.priority === p);
+    if (!all.length) return;
+    const closed    = all.filter(t => t.resolutiondate);
+    const open      = all.filter(t => isOpenStatus(t.status));
+    const openPast  = open.filter(t => ageDays(t) > target);
+    const metSLA    = closed.filter(t => (resolutionDays(t) ?? 0) <= target);
+    const evalTotal = closed.length + openPast.length;
+
+    if (evalTotal > 0) { compSum += w * (metSLA.length / evalTotal); compW += w; }
+
+    const times = closed.map(t => resolutionDays(t));
+    if (times.length) {
+      const mttr = times.reduce((a,b)=>a+b,0) / times.length;
+      speedSum += w * Math.min(target / mttr, 1.0); speedW += w;
+    }
+
+    backlogSum += w * (open.length > 0 ? 1 - openPast.length / open.length : 1);
+    backlogW   += w;
+  });
+
+  const cs = compW   > 0 ? Math.round(compSum   / compW   * 100) : null;
+  const ss = speedW  > 0 ? Math.round(speedSum  / speedW  * 100) : null;
+  const bs = backlogW > 0 ? Math.round(backlogSum / backlogW * 100) : null;
+
+  let trendDir = 0, trendWt = 0;
+  PRIORITIES.forEach(p => {
+    const series = trend.series[p].filter(v => v !== null);
+    if (series.length >= 2) {
+      const last = series[series.length - 1], prev = series[series.length - 2];
+      const pct  = (last - prev) / prev * 100;
+      trendDir  += W[p] * (pct < -10 ? 1 : pct > 10 ? -1 : 0);
+      trendWt   += W[p];
+    }
+  });
+  const trendBonus = trendWt > 0 ? Math.round(trendDir / trendWt * 5) : 0;
+
+  const base  = Math.round(0.40 * (cs ?? 50) + 0.25 * (ss ?? 50) + 0.25 * (bs ?? 50));
+  const score = Math.max(0, Math.min(100, base + trendBonus));
+  const grade = score >= 85 ? 'A' : score >= 70 ? 'B' : score >= 55 ? 'C' : score >= 40 ? 'D' : 'F';
+  const gc    = { A:'#51cf66', B:'#66d9e8', C:'#ffd93d', D:'#ffa64d', F:'#ff6b6b' }[grade];
+  return { score, grade, gc, cs, ss, bs, trendBonus };
+}
+
+function updateScoreBanner(data, label) {
+  const el = document.getElementById('scoreBanner');
+  const r  = computeTeamScore(data);
+  if (!r) {
+    el.innerHTML = `<div style="padding:18px 24px;color:var(--text-dim);font-size:13px">No data for current filters — adjust time range or project.</div>`;
+    return;
+  }
+  const { score, grade, gc, cs, ss, bs, trendBonus } = r;
+
+  function compBlock(label, val, weight) {
+    const color = val === null ? 'var(--text-dim)' : val >= 75 ? '#51cf66' : val >= 50 ? '#ffd93d' : '#ff6b6b';
+    const pct   = val ?? 0;
+    return `<div class="score-comp">
+      <div class="sc-lbl">${label}</div>
+      <div class="sc-val" style="color:${color}">${val !== null ? val : '—'}</div>
+      <div class="sc-bar"><div class="sc-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="sc-wt">${weight}</div>
+    </div>`;
+  }
+
+  const trendHtml = trendBonus > 0
+    ? `<span style="color:#51cf66">↓ +${trendBonus} trend bonus</span>`
+    : trendBonus < 0
+    ? `<span style="color:#ff6b6b">↑ ${trendBonus} trend penalty</span>`
+    : `<span style="color:var(--text-dim)">→ stable trend</span>`;
+
+  const desc = score >= 85 ? 'Excellent' : score >= 70 ? 'Good' : score >= 55 ? 'Needs Improvement' : score >= 40 ? 'At Risk' : 'Critical';
+
+  el.innerHTML = `
+    <div class="score-main-block">
+      <div class="score-number-row">
+        <div class="score-number" style="color:${gc}">${score}</div>
+        <div class="score-grade-chip" style="background:${gc}20;color:${gc};border-color:${gc}55">${grade}</div>
+      </div>
+      <div class="score-main-label">${desc}</div>
+    </div>
+    <div class="score-details">
+      <div class="score-title-row">
+        <div class="score-title">Team Score — ${label}</div>
+        <div class="score-trend-note">${trendHtml}</div>
+      </div>
+      <div class="score-components">
+        ${compBlock('SLA Compliance', cs, '40% weight')}
+        ${compBlock('Speed', ss, '25% weight')}
+        ${compBlock('Backlog Health', bs, '25% weight')}
+      </div>
+    </div>
+  `;
+}
+
+function getFilters() {
+  const days = parseInt(document.getElementById('timeRange').value);
+  const sev = document.getElementById('severityFilter').value;
+  const st = document.getElementById('statusFilter').value;
+  return {days, sev, st};
+}
+
+function filterData(data, {days, sev, st}) {
+  return data.filter(t => {
+    const created = new Date(t.created);
+    if (days > 0 && daysDiff(created, NOW) > days) return false;
+    if (sev !== 'all' && t.priority !== sev) return false;
+    if (st === 'open' && !isOpenStatus(t.status)) return false;
+    if (st === 'closed' && isOpenStatus(t.status)) return false;
+    return true;
+  });
+}
+
+function applySort(data, tab) {
+  const {col, dir} = sortState[tab];
+  return [...data].sort((a, b) => {
+    let va, vb;
+    if (col === 'priority') { va = priorityOrder(a.priority); vb = priorityOrder(b.priority); return (va-vb)*dir; }
+    if (col === 'created')  { va = new Date(a.created); vb = new Date(b.created); return (va-vb)*dir; }
+    if (col === 'age')      { va = ageDays(a); vb = ageDays(b); return (va-vb)*dir; }
+    if (col === 'customer') { va = extractCustomer(a).toLowerCase(); vb = extractCustomer(b).toLowerCase(); return va < vb ? -1*dir : va > vb ? 1*dir : 0; }
+    va = (a[col]||'').toLowerCase(); vb = (b[col]||'').toLowerCase();
+    return va < vb ? -1*dir : va > vb ? 1*dir : 0;
+  });
+}
+
+function sortTable(tab, col) {
+  const s = sortState[tab];
+  s.dir = (s.col === col) ? -s.dir : 1;
+  s.col = col;
+  render();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+
+function renderStats(data, prefix) {
+  const total = data.length;
+  const open = data.filter(t => isOpenStatus(t.status));
+  const closed = data.filter(t => !isOpenStatus(t.status));
+  const showstoppers = data.filter(t => t.priority === 'Showstopper');
+  const openSS = showstoppers.filter(t => isOpenStatus(t.status));
+
+  // Resolution time for closed tickets
+  const closedWithRes = closed.filter(t => t.resolutiondate);
+  const allResTimes = closedWithRes.map(t => resolutionDays(t));
+  const avgAll = allResTimes.length ? allResTimes.reduce((a,b)=>a+b,0)/allResTimes.length : null;
+
+  // Showstopper resolution time
+  const ssResolved = showstoppers.filter(t => t.resolutiondate);
+  const ssResTimes = ssResolved.map(t => resolutionDays(t));
+  const avgSS = ssResTimes.length ? ssResTimes.reduce((a,b)=>a+b,0)/ssResTimes.length : null;
+
+  // Oldest open ticket
+  const openAges = open.map(t => daysDiff(new Date(t.created), NOW));
+  const maxAge = openAges.length ? Math.max(...openAges) : null;
+
+  const el = document.getElementById(prefix + 'Stats');
+  el.innerHTML = `
+    <div class="stat-card accent">
+      <div class="label">Total Escalations</div>
+      <div class="value">${total}</div>
+      <div class="sub">${prefix === 'cloud' ? 'NEO + DPS' : 'DLP + FSM'} projects</div>
+    </div>
+    <div class="stat-card red">
+      <div class="label">Open / Active</div>
+      <div class="value">${open.length}</div>
+      <div class="sub">${total > 0 ? Math.round(open.length/total*100) : 0}% of total</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Resolved</div>
+      <div class="value">${closed.length}</div>
+      <div class="sub">Avg ${avgAll !== null ? fmtDays(avgAll) : 'N/A'} to close</div>
+    </div>
+    <div class="stat-card ${openSS.length > 0 ? 'red' : 'purple'}">
+      <div class="label">Open Showstoppers</div>
+      <div class="value">${openSS.length}</div>
+      <div class="sub">${showstoppers.length} total in range</div>
+    </div>
+    ${(() => {
+      const slaVals     = getSla();
+      const openPastSLA = open.filter(t => ageDays(t) > (slaVals[t.priority] ?? 99));
+      const metSLA      = closedWithRes.filter(t => (resolutionDays(t) ?? 0) <= (slaVals[t.priority] ?? 99));
+      const evalTotal   = closedWithRes.length + openPastSLA.length;
+      const comp        = evalTotal > 0 ? Math.round(metSLA.length / evalTotal * 100) : null;
+      const grade   = comp === null ? '—' : comp >= 90 ? 'A' : comp >= 75 ? 'B' : comp >= 60 ? 'C' : comp >= 40 ? 'D' : 'F';
+      const col     = comp === null ? 'accent' : comp >= 90 ? 'green' : comp >= 75 ? 'accent' : comp >= 60 ? 'yellow' : comp >= 40 ? 'orange' : 'red';
+      return `<div class="stat-card ${col}">
+        <div class="label">MTTR Score</div>
+        <div class="value">${grade}</div>
+        <div class="sub">MTTR ${avgAll !== null ? fmtDays(avgAll) : 'N/A'} · ${comp !== null ? comp + '% within SLA' : 'no resolved data'}</div>
+      </div>`;
+    })()}
+    <div class="stat-card yellow">
+      <div class="label">Oldest Open Ticket</div>
+      <div class="value">${maxAge !== null ? fmtDays(maxAge) : 'N/A'}</div>
+      <div class="sub">${open.length > 0 ? 'Avg open: ' + fmtDays(openAges.reduce((a,b)=>a+b,0)/openAges.length) : 'No open tickets'}</div>
+    </div>
+  `;
+}
+
+function renderChart(data, prefix) {
+  if (!document.getElementById(prefix + 'Chart')) return; // element removed from layout
+  const priorities = ['Showstopper', 'Critical', 'Major'];
+  const colors = { Showstopper: 'var(--red)', Critical: 'var(--orange)', Major: 'var(--major)' };
+  const total = data.length || 1;
+
+  const counts = {};
+  const openCounts = {};
+  priorities.forEach(p => {
+    counts[p] = data.filter(t => t.priority === p).length;
+    openCounts[p] = data.filter(t => t.priority === p && isOpenStatus(t.status)).length;
+  });
+
+  const bars = priorities.map(p => {
+    const pct = Math.round((counts[p]/total)*100);
+    const openPct = counts[p] > 0 ? Math.round((openCounts[p]/counts[p])*100) : 0;
+    return `
+      <div class="sev-bar-row">
+        <div class="sev-label">
+          <span class="badge ${p}">${p}</span>
+        </div>
+        <div class="sev-bar-wrap">
+          <div class="sev-bar-fill" style="width:${pct}%;background:${colors[p]};opacity:0.85"></div>
+        </div>
+        <div class="sev-count">${counts[p]} total</div>
+        <div class="sev-open-pct" style="color:${openCounts[p]>0?colors[p]:'var(--text-dim)'}">
+          ${openCounts[p]} open
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById(prefix + 'Chart').innerHTML = `
+    <h3>Tickets by Severity</h3>
+    <div class="sev-bars">${bars}</div>
+  `;
+}
+
+// ─── MTTR TREND ───────────────────────────────────────────────────────────────
+
+function computeMTTRTrend(data) {
+  const days       = Math.max(1, parseInt(document.getElementById('timeRange').value) || 90);
+  const effectDays = days > 0 ? days : 90;
+  const bucketSize = effectDays <= 14 ? 3 : effectDays <= 30 ? 7 : effectDays <= 60 ? 14 : 21;
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+
+  // Buckets based on ticket creation date (oldest → newest)
+  // Uses ageDays(t) for each ticket: resolutionDays if closed, else days open so far.
+  // This way open tickets contribute to the trend, not just resolved ones.
+  const numBuckets = Math.ceil(effectDays / bucketSize);
+  const buckets = Array.from({ length: numBuckets }, (_, i) => {
+    const end   = new Date(+NOW - (numBuckets - 1 - i) * bucketSize * 86400000);
+    const start = new Date(+end - bucketSize * 86400000);
+    const label = end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+    return { start, end, label };
+  });
+
+  const series = {};
+  const meta   = {};   // { [priority]: [ {total, open, closed} per bucket ] }
+  PRIORITIES.forEach(p => {
+    meta[p]   = buckets.map(() => ({ total: 0, open: 0, closed: 0 }));
+    series[p] = buckets.map((b, i) => {
+      const inBucket = data.filter(t =>
+        t.priority === p &&
+        new Date(t.created) >= b.start && new Date(t.created) < b.end
+      );
+      if (!inBucket.length) return null;
+      inBucket.forEach(t => {
+        meta[p][i].total++;
+        t.resolutiondate ? meta[p][i].closed++ : meta[p][i].open++;
+      });
+      const avg = inBucket.reduce((s, t) => s + ageDays(t), 0) / inBucket.length;
+      return Math.round(avg * 10) / 10;
+    });
+  });
+
+  return { labels: buckets.map(b => b.label), series, meta };
+}
+
+function trendArrow(series) {
+  const vals = series.filter(v => v !== null);
+  if (vals.length < 2) return { html: '<span style="color:var(--text-dim);font-size:12px">—</span>', short: '—' };
+  const last = vals[vals.length - 1], prev = vals[vals.length - 2];
+  const pct  = (last - prev) / prev * 100;
+  if (pct < -10) return { html: `<span style="color:#51cf66;font-weight:700;font-size:13px">↓ ${Math.abs(Math.round(pct))}%</span>`, short: '↓ improving' };
+  if (pct >  10) return { html: `<span style="color:#ff6b6b;font-weight:700;font-size:13px">↑ ${Math.round(pct)}%</span>`, short: '↑ worsening' };
+                 return { html: '<span style="color:#8b90a0;font-size:13px">→ stable</span>', short: '→ stable' };
+}
+
+function renderMTTRTrendChart(trend, slaVals, canvasId) {
+  destroyChart(canvasId);
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+
+  const PRIORITIES  = ['Showstopper', 'Critical', 'Major'];
+  const SEV_COLORS  = { Showstopper: '#ff4757', Critical: '#ff9f43', Major: '#54a0ff' };
+
+  const activePrios = PRIORITIES.filter(p => trend.series[p].some(v => v !== null));
+  if (!activePrios.length) return;
+
+  // Subtle dashed SLA reference lines — hidden from legend, labeled inline via plugin
+  const slaDatasets = activePrios.map(p => ({
+    label: `__sla__${p}`,
+    data: trend.labels.map(() => slaVals[p]),
+    borderColor: SEV_COLORS[p] + '70',
+    borderDash: [5, 4],
+    borderWidth: 1,
+    pointRadius: 0,
+    tension: 0,
+    fill: false
+  }));
+
+  // Data lines — each dot is red (breach) or green (within SLA)
+  const lineDatasets = activePrios.map(p => {
+    const ptColors = trend.series[p].map(v =>
+      v === null ? 'transparent' : v > slaVals[p] ? '#ff6b6b' : '#51cf66'
+    );
+    return {
+      label: p,
+      data: trend.series[p],
+      borderColor: SEV_COLORS[p],
+      borderWidth: 2,
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      pointBackgroundColor: ptColors,
+      pointBorderColor: ptColors,
+      pointBorderWidth: 2,
+      tension: 0.35,
+      spanGaps: true,
+      fill: false
+    };
+  });
+
+  // Inline SLA labels drawn at right edge of each SLA line — no legend clutter
+  const slaLabelPlugin = {
+    id: 'slaLabels',
+    afterDraw(chart) {
+      const { ctx: c, scales: { x, y } } = chart;
+      activePrios.forEach(p => {
+        const yPx = y.getPixelForValue(slaVals[p]);
+        c.save();
+        c.font = 'bold 10px system-ui,sans-serif';
+        c.fillStyle = SEV_COLORS[p] + 'cc';
+        c.textAlign = 'right';
+        c.fillText(`SLA ${slaVals[p]}d`, x.right - 4, yPx - 4);
+        c.restore();
+      });
+    }
+  };
+
+  charts[canvasId] = new Chart(ctx, {
+    type: 'line',
+    data: { labels: trend.labels, datasets: [...lineDatasets, ...slaDatasets] },
+    plugins: [slaLabelPlugin],
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: {
+          color: '#8b90a0', font: { size: 11 }, padding: 16,
+          filter: item => !item.text.startsWith('__sla__')
+        }},
+        tooltip: {
+          callbacks: {
+            title: items => `Cohort created: ${items[0].label}`,
+            afterBody(items) {
+              const dsIdx = items[0].datasetIndex;
+              const p     = activePrios[dsIdx];
+              if (!p || !trend.meta) return [];
+              const bIdx = items[0].dataIndex;
+              const m    = trend.meta[p][bIdx];
+              if (!m || !m.total) return [];
+              const val  = trend.series[p][bIdx];
+              const lines = [val > slaVals[p]
+                ? `✗ ${(val - slaVals[p]).toFixed(1)}d over SLA (target: ${slaVals[p]}d)`
+                : `✓ within SLA (target: ${slaVals[p]}d)`];
+              if (m.open > 0)   lines.push(`${m.open} still open — age counted`);
+              if (m.closed > 0) lines.push(`${m.closed} resolved`);
+              return lines;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b90a0', font: { size: 11 } }, grid: { color: '#2d3141' } },
+        y: { ticks: { color: '#8b90a0', font: { size: 11 }, callback: v => v + 'd' },
+             grid: { color: '#2d3141' }, beginAtZero: true,
+             title: { display: true, text: 'Days  (● green = within SLA  ● red = breach)', color: '#8b90a0', font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+// ─── MTTR PANEL ───────────────────────────────────────────────────────────────
+
+function renderResolutionPanel(data, prefix) {
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+  const slaVals    = getSla();
+  const trend      = computeMTTRTrend(data);
+
+  function gradeFor(comp) {
+    if (comp === null) return { letter: '—', color: '#8b90a0' };
+    if (comp >= 90)    return { letter: 'A', color: '#51cf66' };
+    if (comp >= 75)    return { letter: 'B', color: '#66d9e8' };
+    if (comp >= 60)    return { letter: 'C', color: '#ffd93d' };
+    if (comp >= 40)    return { letter: 'D', color: '#ffa64d' };
+                       return { letter: 'F', color: '#ff6b6b' };
+  }
+
+  const cards = PRIORITIES.map(p => {
+    const target   = slaVals[p];
+    const all      = data.filter(t => t.priority === p);
+    const closed   = all.filter(t => t.resolutiondate);
+    const open     = all.filter(t => isOpenStatus(t.status));
+    const openPast = open.filter(t => ageDays(t) > target);
+    const metSLA   = closed.filter(t => (resolutionDays(t) ?? 0) <= target);
+    const evalTotal = closed.length + openPast.length;
+    const comp     = evalTotal > 0 ? Math.round(metSLA.length / evalTotal * 100) : null;
+    const { letter, color } = gradeFor(comp);
+
+    const times = closed.map(t => resolutionDays(t));
+    const mttr  = times.length ? Math.round(times.reduce((a,b)=>a+b,0)/times.length * 10) / 10 : null;
+    const delta = mttr !== null ? mttr - target : null;
+
+    const deltaHtml = delta === null
+      ? `<span style="color:var(--text-dim)">—</span>`
+      : delta <= 0
+        ? `<span style="color:#51cf66">−${Math.abs(delta)}d</span>`
+        : `<span style="color:#ff6b6b">+${delta}d</span>`;
+
+    // Open status chip
+    let openChip, openClass;
+    if (all.length === 0) {
+      openChip = 'No tickets'; openClass = 'none';
+    } else if (openPast.length > 0) {
+      openChip = `${openPast.length} past SLA`; openClass = 'danger';
+    } else if (open.length > 0) {
+      openChip = `${open.length} open · within SLA`; openClass = 'ok';
+    } else {
+      openChip = 'All resolved'; openClass = 'ok';
+    }
+
+    const compPct   = comp !== null ? comp : 0;
+    const compLabel = comp !== null ? comp + '%' : '—';
+    const countLabel = evalTotal > 0 ? `${metSLA.length} / ${evalTotal} evaluated` : `${closed.length} resolved`;
+    const ta = trendArrow(trend.series[p]);
+
+    return `
+    <div class="sev-card ${p}">
+      <div class="sev-card-top">
+        <span class="badge ${p}">${p}</span>
+        <span class="sev-open-alert ${openClass}">${openChip}</span>
+      </div>
+      <div class="sev-card-body">
+        <div class="grade-block">
+          <div class="grade-circle" style="background:${color}18;color:${color};border-color:${color}50">${letter}</div>
+          <div class="grade-circle-label">Grade</div>
+        </div>
+        <div class="metrics-block">
+          <div class="metrics-row">
+            <div class="metric-item">
+              <div class="ml">MTTR</div>
+              <div class="mv">${mttr !== null ? mttr + 'd' : '—'}</div>
+            </div>
+            <div class="metric-item">
+              <div class="ml">SLA</div>
+              <div class="mv" style="color:var(--text-dim)">${target}d</div>
+            </div>
+            <div class="metric-item">
+              <div class="ml">Delta</div>
+              <div class="mv">${deltaHtml}</div>
+            </div>
+          </div>
+          <div class="compliance-bar-wrap">
+            <div class="compliance-bar-labels">
+              <span>${compLabel} SLA compliance</span>
+              <span style="color:${color}88;font-size:10px">${countLabel}</span>
+            </div>
+            <div class="compliance-track">
+              <div class="compliance-fill" style="width:${compPct}%;background:${color}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="trend-block">
+          <div class="tl">Trend</div>
+          <div style="margin-top:2px">${ta.html}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Grade scale legend
+  const GRADE_COLORS = { A:'#51cf66', B:'#66d9e8', C:'#ffd93d', D:'#ffa64d', F:'#ff6b6b' };
+  const gradeLegend = ['A','B','C','D','F'].map(g => {
+    const t = { A:'≥90%', B:'≥75%', C:'≥60%', D:'≥40%', F:'<40%' }[g];
+    return `<span style="display:inline-flex;align-items:center;gap:4px">
+      <span style="display:inline-block;width:18px;height:18px;line-height:18px;border-radius:4px;
+        font-size:10px;font-weight:800;text-align:center;
+        background:${GRADE_COLORS[g]}20;color:${GRADE_COLORS[g]};border:1px solid ${GRADE_COLORS[g]}55">${g}</span>
+      <span style="font-size:11px;color:var(--text-dim)">${t}</span>
+    </span>`;
+  }).join('');
+
+  document.getElementById(prefix + 'Resolution').innerHTML = `
+    <div class="sev-panel-header">
+      <h3>Performance Overview</h3>
+      <span class="sev-panel-sub">MTTR · SLA compliance · open status per severity — grade based on % resolved within SLA (open-past-SLA count as breaches)</span>
+      <span style="margin-left:auto;display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap">${gradeLegend}</span>
+    </div>
+    <div class="sev-cards-grid">${cards}</div>
+    <div class="trend-chart-section">
+      <div class="trend-chart-header">Ticket age by creation cohort — resolved tickets show MTTR · open tickets show current age · dashed = SLA targets</div>
+      <div style="position:relative;height:220px">
+        <canvas id="${prefix}MTTRTrend"></canvas>
+      </div>
+    </div>
+  `;
+  renderMTTRTrendChart(trend, slaVals, prefix + 'MTTRTrend');
+}
+
+function extractCustomer(t) {
+  return t.customer || '—';
+}
+
+function renderTable(data, tab) {
+  const sorted = applySort(data, tab);
+  const tbody = document.getElementById(tab + 'Table');
+
+  if (sorted.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" class="no-data">No escalation tickets match the current filters.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(t => {
+    const open = isOpenStatus(t.status);
+    const age = ageDays(t);
+    const resTime = resolutionDays(t);
+    const customer = extractCustomer(t);
+
+    let ageClass = '';
+    if (open) {
+      if (age > 30) ageClass = 'very-old';
+      else if (age > 14) ageClass = 'old';
+    }
+
+    const ageCell = open
+      ? `<span class="age ${ageClass}">${fmtDays(age)} open</span>`
+      : `<span class="age" style="color:var(--green)">Resolved in ${fmtDays(resTime)}</span>`;
+
+    return `<tr>
+      <td class="ticket-key">
+        <span class="proj">${t.project}</span>
+        <a href="${JIRA_BASE}${t.key}" target="_blank">${t.key}</a>
+      </td>
+      <td><span class="badge ${t.priority}">${t.priority}</span></td>
+      <td><span class="sbadge ${statusClass(t.status)}">${t.status}</span></td>
+      <td class="assignee">${esc(customer)}</td>
+      <td class="ticket-summary">${esc(t.summary)}</td>
+      <td class="assignee">${esc(t.assignee)}</td>
+      <td class="age">${fmtDate(t.created)}</td>
+      <td>${ageCell}</td>
+    </tr>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── INSIGHTS ─────────────────────────────────────────────────────────────────
+
+function renderInsight(level, icon, title, action) {
+  return `<div class="insight ${level}">
+    <span class="i-icon">${icon}</span>
+    <div class="i-body">
+      <span class="i-title">${title}</span>
+      ${action ? `<span class="i-action">${action}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+// ─── INSIGHT BUILDERS (return HTML strings) ───────────────────────────────────
+
+function buildRVRInsights(data) {
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+  const items = [];
+
+  if (data.length === 0) {
+    return renderInsight('info', 'ℹ️', 'No tickets in this time range', 'Adjust the time range filter to see data.');
+  }
+
+  PRIORITIES.forEach(p => {
+    const tickets = data.filter(t => t.priority === p);
+    if (!tickets.length) return;
+    const res  = tickets.filter(t => !isOpenStatus(t.status)).length;
+    const open = tickets.length - res;
+    const rate = Math.round(res / tickets.length * 100);
+
+    if (p === 'Showstopper' && open > 0) {
+      items.push(renderInsight('critical', '🚨',
+        `${open} Showstopper${open > 1 ? 's' : ''} unresolved — action required now`,
+        `Only ${rate}% resolved (${res}/${tickets.length}). Escalate immediately to R&D leadership.`
+      ));
+    } else if (rate < 40) {
+      items.push(renderInsight('critical', '🔴',
+        `${p} backlog critical — only ${rate}% resolved`,
+        `${open} of ${tickets.length} tickets open. Capacity or prioritisation review needed urgently.`
+      ));
+    } else if (rate < 70) {
+      items.push(renderInsight('warn', '🟡',
+        `${p}: ${open} tickets still open (${rate}% resolved)`,
+        `Backlog is growing. Consider assigning more R&D bandwidth to ${p} escalations.`
+      ));
+    } else {
+      items.push(renderInsight('good', '✅',
+        `${p}: ${rate}% resolved (${res}/${tickets.length})`,
+        open > 0 ? `${open} remaining — monitor to prevent backlog.` : 'All tickets resolved in this range.'
+      ));
+    }
+  });
+
+  const totalOpen = data.filter(t => isOpenStatus(t.status)).length;
+  const totalAll  = data.length;
+  if (totalOpen > totalAll * 0.5 && totalAll > 4) {
+    items.push(renderInsight('warn', '📈',
+      `Overall resolution rate ${Math.round((totalAll - totalOpen) / totalAll * 100)}% — below 50%`,
+      'More tickets are being opened than resolved. Review R&D team capacity across all severities.'
+    ));
+  }
+
+  return items.join('');
+}
+
+function buildSLAInsights(data) {
+  const PRIORITIES = ['Showstopper', 'Critical', 'Major'];
+  const sla   = getSla();
+  const items = [];
+
+  if (data.length === 0) {
+    return renderInsight('info', 'ℹ️', 'No tickets in this time range', 'Adjust the time range filter to see data.');
+  }
+
+  PRIORITIES.forEach(p => {
+    const tickets  = data.filter(t => t.priority === p);
+    if (!tickets.length) return;
+    const target   = sla[p];
+    const openPast = tickets.filter(t =>  isOpenStatus(t.status) && ageDays(t) > target);
+    const openIn   = tickets.filter(t =>  isOpenStatus(t.status) && ageDays(t) <= target);
+    const cBreach  = tickets.filter(t => !isOpenStatus(t.status) && (resolutionDays(t) ?? 0) > target);
+    const cMet     = tickets.filter(t => !isOpenStatus(t.status) && (resolutionDays(t) ?? 0) <= target);
+
+    if (openPast.length > 0) {
+      const worst = openPast.reduce((a, b) => ageDays(a) > ageDays(b) ? a : b);
+      const keys  = openPast.map(t => t.key).join(', ');
+      items.push(renderInsight(
+        p === 'Showstopper' ? 'critical' : 'warn',
+        p === 'Showstopper' ? '🚨' : '⚠️',
+        `${openPast.length} open ${p} ticket${openPast.length > 1 ? 's' : ''} already past ${target}-day SLA`,
+        `Act now: ${keys}. Oldest is ${fmtDays(ageDays(worst))} old (${worst.key}).`
+      ));
+    } else if (openIn.length > 0) {
+      const soonest  = openIn.reduce((a, b) => ageDays(a) > ageDays(b) ? a : b);
+      const daysLeft = Math.max(0, Math.round(target - ageDays(soonest)));
+      items.push(renderInsight('info', '🕐',
+        `${openIn.length} open ${p} ticket${openIn.length > 1 ? 's' : ''} within SLA — closest expires in ${daysLeft}d`,
+        `Monitor ${soonest.key} (${fmtDays(ageDays(soonest))} old vs ${target}-day target).`
+      ));
+    }
+
+    if (cBreach.length > 0) {
+      const avgBreach = cBreach.reduce((s, t) => s + (resolutionDays(t) ?? 0), 0) / cBreach.length;
+      items.push(renderInsight('warn', '📊',
+        `${cBreach.length} resolved ${p} ticket${cBreach.length > 1 ? 's' : ''} exceeded SLA`,
+        `Avg resolution ${fmtDays(avgBreach)} — ${Math.round(avgBreach - target)}d over the ${target}-day target. Review root causes.`
+      ));
+    }
+
+    if (openPast.length === 0 && cBreach.length === 0 && cMet.length > 0) {
+      items.push(renderInsight('good', '✅',
+        `${p}: all resolved tickets met the ${target}-day SLA`,
+        `${cMet.length} ticket${cMet.length > 1 ? 's' : ''} closed on time.`
+      ));
+    }
+  });
+
+  if (items.length === 0) {
+    items.push(renderInsight('good', '🎯', 'All tickets within SLA targets', 'No breaches detected in this time range. Keep it up.'));
+  }
+
+  return items.join('');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+
+const lastData = { cloud: [], onprem: [] };
+
+function openInsights(type, tab) {
+  const data  = lastData[tab];
+  const tabLabel = tab === 'cloud' ? 'DLP Cloud' : 'DLP OnPrem';
+  const titles = { rvr: 'Reported vs Resolved — Insights', sla: 'SLA Compliance — Insights' };
+  const html   = type === 'rvr' ? buildRVRInsights(data) : buildSLAInsights(data);
+
+  document.getElementById('modalTitle').textContent = `${tabLabel} · ${titles[type]}`;
+  document.getElementById('modalBody').innerHTML    = html;
+  document.getElementById('insightsModal').classList.add('open');
+}
+
+function closeInsights() {
+  document.getElementById('insightsModal').classList.remove('open');
+}
+
+function closeModalOnOverlay(e) {
+  if (e.target === document.getElementById('insightsModal')) closeInsights();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInsights(); });
+
+function render() {
+  const filters = getFilters();
+  const cProj = projectFilter.cloud;
+  const oProj = projectFilter.onprem;
+  const cData = filterData(cloudData,  filters).filter(t => cProj === 'all' || t.project === cProj);
+  const oData = filterData(onpremData, filters).filter(t => oProj === 'all' || t.project === oProj);
+
+  lastData.cloud  = cData;
+  lastData.onprem = oData;
+
+  renderStats(cData, 'cloud');
+  renderRVRChart(cData, 'cloudRVR');
+  renderSlaChart(cData, 'cloudSLA');
+  renderChart(cData, 'cloud');
+  renderResolutionPanel(cData, 'cloud');
+  renderTable(cData, 'cloud');
+
+  renderStats(oData, 'onprem');
+  renderRVRChart(oData, 'onpremRVR');
+  renderSlaChart(oData, 'onpremSLA');
+  renderChart(oData, 'onprem');
+  renderResolutionPanel(oData, 'onprem');
+  renderTable(oData, 'onprem');
+
+  // Update tab badges
+  const cOpen = cData.filter(t => isOpenStatus(t.status)).length;
+  const oOpen = oData.filter(t => isOpenStatus(t.status)).length;
+  document.getElementById('cloudBadge').textContent = `(${cData.length} total, ${cOpen} open)`;
+  document.getElementById('onpremBadge').textContent = `(${oData.length} total, ${oOpen} open)`;
+
+  // Update score banner for the active tab
+  const bannerData  = activeTab === 'onprem' ? oData : cData;
+  const bannerProj  = projectFilter[activeTab === 'onprem' ? 'onprem' : 'cloud'];
+  const bannerLabel = (activeTab === 'onprem' ? 'DLP OnPrem' : 'DLP Cloud') +
+                      (bannerProj !== 'all' ? ` · ${bannerProj}` : '');
+  updateScoreBanner(bannerData, bannerLabel);
+}
+
+function switchTab(name, btn) {
+  activeTab = name;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(name).classList.add('active');
+  // Refresh score banner (help tab shows no score)
+  if (name === 'help') return;
+  const data  = lastData[name];
+  const proj  = projectFilter[name];
+  const label = (name === 'cloud' ? 'DLP Cloud' : 'DLP OnPrem') + (proj !== 'all' ? ` · ${proj}` : '');
+  updateScoreBanner(data, label);
+}
+
+// ─── PI INITIATIVES ───────────────────────────────────────────────────────────
+
+function switchPITab(name, btn) {
+  btn.closest('.pi-tab-bar').querySelectorAll('.pi-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pi-cloud').classList.remove('active');
+  document.getElementById('pi-onprem').classList.remove('active');
+  document.getElementById(name).classList.add('active');
+}
+
+function toggleSection(header) {
+  const group = header.closest('.section-group');
+  group.classList.toggle('collapsed');
+  const chevron = header.querySelector('.section-chevron');
+  if (chevron) chevron.classList.toggle('collapsed');
+}
+
+function renderDashboard() {
+  const cData   = lastData.cloud;
+  const oData   = lastData.onprem;
+  const slaVals = getSla();
+
+  function teamWidget(side, data, label, detailFn) {
+    const score  = computeTeamScore(data);
+    const open   = data.filter(t => isOpenStatus(t.status));
+    const closed = data.filter(t => !isOpenStatus(t.status));
+    const openSS = data.filter(t => t.priority === 'Showstopper' && isOpenStatus(t.status));
+    const closedWithRes = closed.filter(t => t.resolutiondate);
+    const allRes = closedWithRes.map(t => resolutionDays(t));
+    const avgMTTR = allRes.length ? Math.round(allRes.reduce((a,b)=>a+b,0)/allRes.length) : null;
+
+    const openPastSLA = open.filter(t => ageDays(t) > (slaVals[t.priority] ?? 99));
+    const metSLA = closedWithRes.filter(t => (resolutionDays(t) ?? 0) <= (slaVals[t.priority] ?? 99));
+    const evalTotal = closedWithRes.length + openPastSLA.length;
+    const slaComp = evalTotal > 0 ? Math.round(metSLA.length / evalTotal * 100) : null;
+
+    const sc = score ?? { score: '—', grade: '—', gc: 'var(--text-dim)' };
+    const gc = sc.gc || 'var(--text-dim)';
+
+    return `
+      <div class="dash-team-card" onclick="showDetail('${side}')">
+        <div class="dash-team-header">
+          <div>
+            <div class="dash-team-title">${label}</div>
+            <div class="dash-team-sub">${data.length} escalations in range</div>
+          </div>
+          <div class="dash-cta">View Details <span class="dash-cta-arrow">&#8594;</span></div>
+        </div>
+        <div class="dash-body">
+          <div class="dash-score-block">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="dash-score-num" style="color:${gc}">${sc.score}</div>
+              <div class="dash-score-grade" style="color:${gc};background:${gc}18;border-color:${gc}55">${sc.grade}</div>
+            </div>
+            <div class="dash-score-label">Team Score</div>
+          </div>
+          <div class="dash-metrics">
+            <div class="dash-metric-row">
+              <div class="dash-kpi accent">
+                <div class="dk-lbl">Total</div>
+                <div class="dk-val">${data.length}</div>
+              </div>
+              <div class="dash-kpi ${open.length > 5 ? 'red' : 'green'}">
+                <div class="dk-lbl">Open</div>
+                <div class="dk-val">${open.length}</div>
+              </div>
+              <div class="dash-kpi green">
+                <div class="dk-lbl">Resolved</div>
+                <div class="dk-val">${closed.length}</div>
+              </div>
+              <div class="dash-kpi ${openSS.length > 0 ? 'red' : 'orange'}">
+                <div class="dk-lbl">Showstoppers</div>
+                <div class="dk-val">${openSS.length} open</div>
+              </div>
+            </div>
+            <div class="dash-metric-row">
+              <div class="dash-kpi yellow">
+                <div class="dk-lbl">MTTR</div>
+                <div class="dk-val">${avgMTTR !== null ? avgMTTR + 'd' : '—'}</div>
+              </div>
+              <div class="dash-kpi ${slaComp === null ? 'accent' : slaComp >= 75 ? 'green' : slaComp >= 50 ? 'yellow' : 'red'}">
+                <div class="dk-lbl">SLA Compliance</div>
+                <div class="dk-val">${slaComp !== null ? slaComp + '%' : '—'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Open showstoppers across both teams
+  const allData = [...cData, ...oData];
+  const openSS  = allData
+    .filter(t => t.priority === 'Showstopper' && isOpenStatus(t.status))
+    .sort((a, b) => ageDays(b) - ageDays(a));
+
+  const alertsHtml = openSS.length === 0
+    ? '<div class="dash-no-alerts">No open Showstoppers — good standing</div>'
+    : openSS.map(t => {
+        const age = Math.round(ageDays(t));
+        const team = ['NEO','DPS'].includes(t.project) ? 'Cloud DLP' : 'OnPrem DLP';
+        const side = ['NEO','DPS'].includes(t.project) ? 'cloud' : 'onprem';
+        return `<div class="dash-alert-row" onclick="showDetail('${side}')">
+          <span class="dash-alert-key">${t.key}</span>
+          <span class="dash-alert-cust">[${team}]</span>
+          <span class="dash-alert-sum">${t.summary.length > 90 ? t.summary.slice(0,90)+'…' : t.summary}</span>
+          <span class="dash-alert-age">${age}d open</span>
+        </div>`;
+      }).join('');
+
+  document.getElementById('dashboardView').innerHTML = `
+    <div class="dash-grid">
+      ${teamWidget('cloud',  cData, '☁️  DLP Cloud')}
+      ${teamWidget('onprem', oData, '🖥️  DLP On-Prem')}
+    </div>
+    <div class="dash-alerts-panel">
+      <div class="dash-alerts-header">
+        <span class="dash-alerts-title">Open Showstoppers</span>
+        <span style="font-size:12px;color:var(--text-dim)">${openSS.length} across all teams · click to drill in</span>
+      </div>
+      ${alertsHtml}
+    </div>`;
+}
+
+
+// Init
+document.getElementById('dateStamp').textContent =
+  'Data as of ' + NOW.toLocaleDateString('en-GB', {day:'2-digit',month:'long',year:'numeric'}) +
+  ' · Jira: forcepoint.atlassian.net · Escalation issue type · NEO, DPS, DLP, FSM';
+
+render();
+renderDashboard();
+</script>
+</body>
+</html>
