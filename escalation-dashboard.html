@@ -714,6 +714,18 @@
     <input type="number" id="slaMajor" value="14" min="1" max="365" onchange="render()">
     <div class="unit">days</div>
   </div>
+  <div class="sep"></div>
+  <div class="sla-config-title">MTTR Targets</div>
+  <div class="sla-field">
+    <label><span class="badge Showstopper">Showstopper</span></label>
+    <input type="number" id="mttrShowstopper" value="5" min="1" max="365" onchange="renderDashboard()">
+    <div class="unit">days</div>
+  </div>
+  <div class="sla-field">
+    <label><span class="badge Critical">Critical</span></label>
+    <input type="number" id="mttrCritical" value="10" min="1" max="365" onchange="renderDashboard()">
+    <div class="unit">days</div>
+  </div>
 </div>
 
 <div id="scoreBanner" class="score-banner"></div>
@@ -1085,6 +1097,13 @@ function getSla() {
     Showstopper: Math.max(1, parseInt(document.getElementById('slaShowstopper').value) || 3),
     Critical:    Math.max(1, parseInt(document.getElementById('slaCritical').value)    || 7),
     Major:       Math.max(1, parseInt(document.getElementById('slaMajor').value)       || 14)
+  };
+}
+
+function getMttr() {
+  return {
+    Showstopper: Math.max(1, parseInt(document.getElementById('mttrShowstopper').value) || 5),
+    Critical:    Math.max(1, parseInt(document.getElementById('mttrCritical').value)    || 10),
   };
 }
 
@@ -2035,9 +2054,21 @@ function toggleSection(header) {
   if (chevron) chevron.classList.toggle('collapsed');
 }
 
+function showDetail(side) {
+  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('detailView').style.display = '';
+  const btn = [...document.querySelectorAll('.tab')].find(b => (b.getAttribute('onclick') || '').includes(`'${side}'`));
+  if (btn) switchTab(side, btn);
+}
+
+function showDashboard() {
+  document.getElementById('detailView').style.display = 'none';
+  document.getElementById('dashboardView').style.display = '';
+}
+
 function renderDashboard() {
-  const cData   = lastData.cloud;
-  const oData   = lastData.onprem;
+  const cData   = cloudData;
+  const oData   = onpremData;
   const slaVals = getSla();
 
   function teamWidget(side, data, label, detailFn) {
@@ -2048,6 +2079,14 @@ function renderDashboard() {
     const closedWithRes = closed.filter(t => t.resolutiondate);
     const allRes = closedWithRes.map(t => resolutionDays(t));
     const avgMTTR = allRes.length ? Math.round(allRes.reduce((a,b)=>a+b,0)/allRes.length) : null;
+
+    const mttrVals = getMttr();
+    const ssRes   = closedWithRes.filter(t => t.priority === 'Showstopper');
+    const critRes = closedWithRes.filter(t => t.priority === 'Critical');
+    const avgMTTR_SS   = ssRes.length   ? Math.round(ssRes.map(t => resolutionDays(t)).reduce((a,b)=>a+b,0)/ssRes.length)     : null;
+    const avgMTTR_Crit = critRes.length ? Math.round(critRes.map(t => resolutionDays(t)).reduce((a,b)=>a+b,0)/critRes.length) : null;
+    const ssMttrCls   = avgMTTR_SS   === null ? 'accent' : avgMTTR_SS   <= mttrVals.Showstopper ? 'green' : 'red';
+    const critMttrCls = avgMTTR_Crit === null ? 'accent' : avgMTTR_Crit <= mttrVals.Critical    ? 'green' : 'red';
 
     const openPastSLA = open.filter(t => ageDays(t) > (slaVals[t.priority] ?? 99));
     const metSLA = closedWithRes.filter(t => (resolutionDays(t) ?? 0) <= (slaVals[t.priority] ?? 99));
@@ -2094,9 +2133,13 @@ function renderDashboard() {
               </div>
             </div>
             <div class="dash-metric-row">
-              <div class="dash-kpi yellow">
-                <div class="dk-lbl">MTTR</div>
-                <div class="dk-val">${avgMTTR !== null ? avgMTTR + 'd' : '—'}</div>
+              <div class="dash-kpi ${ssMttrCls}">
+                <div class="dk-lbl">MTTR · SS</div>
+                <div class="dk-val">${avgMTTR_SS !== null ? avgMTTR_SS + 'd' : '—'}</div>
+              </div>
+              <div class="dash-kpi ${critMttrCls}">
+                <div class="dk-lbl">MTTR · Critical</div>
+                <div class="dk-val">${avgMTTR_Crit !== null ? avgMTTR_Crit + 'd' : '—'}</div>
               </div>
               <div class="dash-kpi ${slaComp === null ? 'accent' : slaComp >= 75 ? 'green' : slaComp >= 50 ? 'yellow' : 'red'}">
                 <div class="dk-lbl">SLA Compliance</div>
