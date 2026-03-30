@@ -17,6 +17,8 @@
   --yellow: #eab308;
   --orange: #f97316;
   --red: #ef4444;
+  --cloud-accent: #38bdf8;
+  --onprem-accent: #f59e0b;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -36,13 +38,114 @@ header {
 .site-title { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
 .as-of { font-size: 12px; color: var(--text-dim); }
 
+/* Settings button */
+.settings-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: border-color 0.15s, color 0.15s;
+}
+.settings-btn:hover { border-color: #4a5080; color: var(--text); }
+.settings-btn.active { border-color: var(--accent); color: var(--accent); }
+
+/* Settings panel */
+.settings-panel {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-end;
+}
+.settings-panel.hidden { display: none; }
+.settings-group { display: flex; flex-direction: column; gap: 8px; }
+.settings-group-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+.settings-fields { display: flex; flex-wrap: wrap; gap: 12px; }
+.settings-field { display: flex; flex-direction: column; gap: 3px; }
+.settings-field label { font-size: 10px; color: var(--text-dim); }
+.settings-field input[type="number"] {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 5px 8px;
+  width: 68px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.settings-field input[type="number"]:focus { border-color: var(--accent); }
+.settings-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+  margin: 0 4px;
+}
+.settings-apply {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 16px;
+  height: fit-content;
+  align-self: flex-end;
+  transition: opacity 0.15s;
+}
+.settings-apply:hover { opacity: 0.85; }
+.settings-reset {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 12px;
+  height: fit-content;
+  align-self: flex-end;
+  transition: border-color 0.15s;
+}
+.settings-reset:hover { border-color: #4a5080; color: var(--text); }
+
 main {
-  padding: 24px 28px;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+/* Section blocks */
+.section-block {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-width: 1500px;
-  margin: 0 auto;
+}
+.section-block.cloud {
+  border-left: 3px solid var(--cloud-accent);
+  background: rgba(56, 189, 248, 0.025);
+}
+.section-block.onprem {
+  border-left: 3px solid var(--onprem-accent);
+  background: rgba(245, 158, 11, 0.025);
 }
 
 /* Row labels */
@@ -50,19 +153,22 @@ main {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 2px 0;
+  padding: 0 2px;
 }
 .row-label-text {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  color: var(--text-dim);
+  white-space: nowrap;
 }
+.row-label.cloud .row-label-text { color: var(--cloud-accent); }
+.row-label.cloud .row-label-line { background: var(--cloud-accent); opacity: 0.25; }
+.row-label.onprem .row-label-text { color: var(--onprem-accent); }
+.row-label.onprem .row-label-line { background: var(--onprem-accent); opacity: 0.25; }
 .row-label-line {
   flex: 1;
   height: 1px;
-  background: var(--border);
 }
 
 /* Card row */
@@ -146,52 +252,169 @@ main {
 
 <header>
   <div class="site-title">DLP Program Dashboard</div>
-  <div class="as-of" id="hdr-date"></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="as-of" id="hdr-date"></div>
+    <button class="settings-btn" id="settings-toggle" title="Configure SLA thresholds">⚙ SLA</button>
+  </div>
 </header>
 
-<main>
-  <!-- Cloud row -->
-  <div class="row-label">
-    <div class="row-label-text">☁&nbsp; Cloud DLP</div>
-    <div class="row-label-line"></div>
+<div id="settings-panel" class="settings-panel hidden">
+  <div class="settings-group">
+    <div class="settings-group-title">Escalation — Penalty Weights</div>
+    <div class="settings-fields">
+      <div class="settings-field">
+        <label>Showstopper</label>
+        <input type="number" id="sla-ss-penalty" min="1" max="50" step="1">
+      </div>
+      <div class="settings-field">
+        <label>Critical</label>
+        <input type="number" id="sla-crit-penalty" min="0.5" max="20" step="0.5">
+      </div>
+      <div class="settings-field">
+        <label>Major</label>
+        <input type="number" id="sla-maj-penalty" min="0.5" max="10" step="0.5">
+      </div>
+    </div>
   </div>
-  <div class="cards-row">
-    <a class="card" href="escalation-dashboard.html">
-      <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">↗</div></div>
-      <div class="card-body" id="cloud-esc-body"><div class="loading">Loading…</div></div>
-    </a>
-    <a class="card" href="pi-dashboard.html">
-      <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">↗</div></div>
-      <div class="card-body" id="cloud-pi-body"><div class="loading">Loading…</div></div>
-    </a>
-    <a class="card" href="stalled.html?product=cloud">
-      <div class="card-top"><div class="card-title">Stalled Items</div><div class="card-arrow">↗</div></div>
-      <div class="card-body" id="cloud-stall-body"><div class="loading">Loading…</div></div>
-    </a>
+  <div class="settings-divider"></div>
+  <div class="settings-group">
+    <div class="settings-group-title">Stalled Items — Thresholds</div>
+    <div class="settings-fields">
+      <div class="settings-field">
+        <label>Stalled (days)</label>
+        <input type="number" id="sla-stall-days" min="7" max="180" step="1">
+      </div>
+      <div class="settings-field">
+        <label>Stale warning (days)</label>
+        <input type="number" id="sla-stale-warn" min="30" max="365" step="1">
+      </div>
+      <div class="settings-field">
+        <label>Stale critical (days)</label>
+        <input type="number" id="sla-stale-crit" min="60" max="730" step="1">
+      </div>
+    </div>
+  </div>
+  <div style="margin-left:auto;display:flex;gap:8px;align-items:flex-end">
+    <button class="settings-reset" id="settings-reset">Reset</button>
+    <button class="settings-apply" id="settings-apply">Apply</button>
+  </div>
+</div>
+
+<main>
+  <!-- Cloud DLP section -->
+  <div class="section-block cloud">
+    <div class="row-label cloud">
+      <div class="row-label-text">&#x2601;&#xFE0F;&nbsp; Cloud DLP</div>
+      <div class="row-label-line"></div>
+    </div>
+    <div class="cards-row">
+      <a class="card" href="escalation-dashboard.html">
+        <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">↗</div></div>
+        <div class="card-body" id="cloud-esc-body"><div class="loading">Loading…</div></div>
+      </a>
+      <a class="card" href="pi-dashboard.html">
+        <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">↗</div></div>
+        <div class="card-body" id="cloud-pi-body"><div class="loading">Loading…</div></div>
+      </a>
+      <a class="card" href="stalled.html?product=cloud">
+        <div class="card-top"><div class="card-title">Stalled Items</div><div class="card-arrow">↗</div></div>
+        <div class="card-body" id="cloud-stall-body"><div class="loading">Loading…</div></div>
+      </a>
+    </div>
   </div>
 
-  <!-- OnPrem row -->
-  <div class="row-label" style="margin-top:8px">
-    <div class="row-label-text">🖥&nbsp; On-Prem DLP</div>
-    <div class="row-label-line"></div>
-  </div>
-  <div class="cards-row">
-    <a class="card" href="escalation-dashboard.html">
-      <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">↗</div></div>
-      <div class="card-body" id="onprem-esc-body"><div class="loading">Loading…</div></div>
-    </a>
-    <a class="card" href="pi-dashboard.html">
-      <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">↗</div></div>
-      <div class="card-body" id="onprem-pi-body"><div class="loading">Loading…</div></div>
-    </a>
-    <a class="card" href="stalled.html?product=onprem">
-      <div class="card-top"><div class="card-title">Stalled Items</div><div class="card-arrow">↗</div></div>
-      <div class="card-body" id="onprem-stall-body"><div class="loading">Loading…</div></div>
-    </a>
+  <!-- On-Prem DLP section -->
+  <div class="section-block onprem">
+    <div class="row-label onprem">
+      <div class="row-label-text">&#x1F5A5;&#xFE0F;&nbsp; On-Prem DLP</div>
+      <div class="row-label-line"></div>
+    </div>
+    <div class="cards-row">
+      <a class="card" href="escalation-dashboard.html">
+        <div class="card-top"><div class="card-title">Escalations</div><div class="card-arrow">↗</div></div>
+        <div class="card-body" id="onprem-esc-body"><div class="loading">Loading…</div></div>
+      </a>
+      <a class="card" href="pi-dashboard.html">
+        <div class="card-top"><div class="card-title">PI 2026.1 Initiatives</div><div class="card-arrow">↗</div></div>
+        <div class="card-body" id="onprem-pi-body"><div class="loading">Loading…</div></div>
+      </a>
+      <a class="card" href="stalled.html?product=onprem">
+        <div class="card-top"><div class="card-title">Stalled Items</div><div class="card-arrow">↗</div></div>
+        <div class="card-body" id="onprem-stall-body"><div class="loading">Loading…</div></div>
+      </a>
+    </div>
   </div>
 </main>
 
 <script>
+// ─── SLA Config ───────────────────────────────────────────────────────────────
+
+const SLA_KEY = 'dlp-sla-v1';
+const SLA_DEFAULTS = {
+  ssPenalty:  10,
+  critPenalty: 4,
+  majPenalty:  1.5,
+  stallDays:  30,
+  staleWarn:  90,
+  staleCrit: 180
+};
+
+function loadSLA() {
+  try { return Object.assign({}, SLA_DEFAULTS, JSON.parse(localStorage.getItem(SLA_KEY) || '{}')); }
+  catch { return Object.assign({}, SLA_DEFAULTS); }
+}
+
+function saveSLA(sla) {
+  localStorage.setItem(SLA_KEY, JSON.stringify(sla));
+}
+
+let SLA = loadSLA();
+
+// ─── Settings panel ───────────────────────────────────────────────────────────
+
+function populateInputs(sla) {
+  document.getElementById('sla-ss-penalty').value   = sla.ssPenalty;
+  document.getElementById('sla-crit-penalty').value = sla.critPenalty;
+  document.getElementById('sla-maj-penalty').value  = sla.majPenalty;
+  document.getElementById('sla-stall-days').value   = sla.stallDays;
+  document.getElementById('sla-stale-warn').value   = sla.staleWarn;
+  document.getElementById('sla-stale-crit').value   = sla.staleCrit;
+}
+
+populateInputs(SLA);
+
+document.getElementById('settings-toggle').addEventListener('click', function() {
+  const panel = document.getElementById('settings-panel');
+  const btn   = this;
+  const hidden = panel.classList.toggle('hidden');
+  btn.classList.toggle('active', !hidden);
+  if (!hidden) populateInputs(SLA);
+});
+
+document.getElementById('settings-apply').addEventListener('click', function() {
+  SLA = {
+    ssPenalty:   parseFloat(document.getElementById('sla-ss-penalty').value)   || SLA_DEFAULTS.ssPenalty,
+    critPenalty: parseFloat(document.getElementById('sla-crit-penalty').value) || SLA_DEFAULTS.critPenalty,
+    majPenalty:  parseFloat(document.getElementById('sla-maj-penalty').value)  || SLA_DEFAULTS.majPenalty,
+    stallDays:   parseInt(document.getElementById('sla-stall-days').value)     || SLA_DEFAULTS.stallDays,
+    staleWarn:   parseInt(document.getElementById('sla-stale-warn').value)     || SLA_DEFAULTS.staleWarn,
+    staleCrit:   parseInt(document.getElementById('sla-stale-crit').value)     || SLA_DEFAULTS.staleCrit,
+  };
+  saveSLA(SLA);
+  document.getElementById('settings-panel').classList.add('hidden');
+  document.getElementById('settings-toggle').classList.remove('active');
+  refresh();
+});
+
+document.getElementById('settings-reset').addEventListener('click', function() {
+  SLA = Object.assign({}, SLA_DEFAULTS);
+  saveSLA(SLA);
+  populateInputs(SLA);
+  document.getElementById('settings-panel').classList.add('hidden');
+  document.getElementById('settings-toggle').classList.remove('active');
+  refresh();
+});
+
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 function scoreColor(s) {
@@ -245,34 +468,36 @@ function isOpen(s) {
 
 // ─── Escalation ───────────────────────────────────────────────────────────────
 
+let _escData = null;
+
 async function loadEscalation() {
-  const html = await fetch('escalation-dashboard.html').then(r => r.text());
-
-  const cloudRaw  = html.match(/const cloudData = (\[[\s\S]*?\n\]);/);
-  const onpremRaw = html.match(/const onpremData = (\[[\s\S]*?\n\]);/);
-  if (!cloudRaw || !onpremRaw) return;
-
-  // eslint-disable-next-line no-new-func
-  const cloudData  = new Function('return ' + cloudRaw[1])();
-  // eslint-disable-next-line no-new-func
-  const onpremData = new Function('return ' + onpremRaw[1])();
-
-  const dateM = html.match(/Data as of: (\d{4}-\d{2}-\d{2})/);
-  if (dateM) document.getElementById('hdr-date').textContent = 'Data as of ' + dateM[1];
+  if (!_escData) {
+    const html = await fetch('escalation-dashboard.html').then(r => r.text());
+    const cloudRaw  = html.match(/const cloudData = (\[[\s\S]*?\n\]);/);
+    const onpremRaw = html.match(/const onpremData = (\[[\s\S]*?\n\]);/);
+    if (!cloudRaw || !onpremRaw) return;
+    // eslint-disable-next-line no-new-func
+    _escData = {
+      cloud:  new Function('return ' + cloudRaw[1])(),
+      onprem: new Function('return ' + onpremRaw[1])(),
+    };
+    const dateM = html.match(/Data as of: (\d{4}-\d{2}-\d{2})/);
+    if (dateM) document.getElementById('hdr-date').textContent = 'Data as of ' + dateM[1];
+  }
 
   function analyze(data) {
     const open  = data.filter(t => isOpen(t.status));
     const ss    = open.filter(t => t.priority === 'Showstopper').length;
     const crit  = open.filter(t => t.priority === 'Critical').length;
     const maj   = open.filter(t => t.priority === 'Major').length;
-    const penalty = ss * 10 + crit * 4 + maj * 1.5;
-    const closed  = data.length - open.length;
+    const penalty   = ss * SLA.ssPenalty + crit * SLA.critPenalty + maj * SLA.majPenalty;
+    const closed    = data.length - open.length;
     const closurePct = Math.round(closed / Math.max(1, data.length) * 100);
     return { score: Math.max(0, 100 - penalty), open: open.length, total: data.length, closed, closurePct, ss, crit, maj };
   }
 
-  renderEscCard('cloud-esc-body',  analyze(cloudData));
-  renderEscCard('onprem-esc-body', analyze(onpremData));
+  renderEscCard('cloud-esc-body',  analyze(_escData.cloud));
+  renderEscCard('onprem-esc-body', analyze(_escData.onprem));
 }
 
 function renderEscCard(bodyId, d) {
@@ -350,32 +575,36 @@ function renderPICard(bodyId, d) {
 
 const CLOUD_PROJS = new Set(['NEO', 'DPS']);
 
-async function loadStalled() {
-  const html  = await fetch('stalled.html').then(r => r.text());
-  const match = html.match(/const ISSUES = (\[[\s\S]*?\]);/);
-  if (!match) return;
+let _stalledAll = null;
 
-  const all    = JSON.parse(match[1]);
-  const cloud  = all.filter(i => CLOUD_PROJS.has(i.project));
-  const onprem = all.filter(i => !CLOUD_PROJS.has(i.project));
+async function loadStalled() {
+  if (!_stalledAll) {
+    const html  = await fetch('stalled.html').then(r => r.text());
+    const match = html.match(/const ISSUES = (\[[\s\S]*?\]);/);
+    if (!match) return;
+    _stalledAll = JSON.parse(match[1]);
+  }
+
+  const cloud  = _stalledAll.filter(i => CLOUD_PROJS.has(i.project));
+  const onprem = _stalledAll.filter(i => !CLOUD_PROJS.has(i.project));
 
   renderStalledCard('cloud-stall-body',  cloud);
   renderStalledCard('onprem-stall-body', onprem);
 }
 
 function renderStalledCard(bodyId, issues) {
-  const today   = new Date('2026-03-30');
-  const ageD    = d => (today - new Date(d)) / 86400000;
-  const total   = issues.length;
-  const ss      = issues.filter(i => i.priority === 'Showstopper').length;
-  const crit    = issues.filter(i => i.priority === 'Critical').length;
-  const maj     = issues.filter(i => i.priority === 'Major').length;
-  const stale90  = issues.filter(i => ageD(i.updated) >= 90).length;
-  const stale180 = issues.filter(i => ageD(i.updated) >= 180).length;
-  const penalty  = ss * 8 + crit * 2 + stale90 * 3;
-  const score    = Math.max(0, 100 - penalty);
+  const today    = new Date('2026-03-30');
+  const ageD     = d => (today - new Date(d)) / 86400000;
+  const total    = issues.length;
+  const ss       = issues.filter(i => i.priority === 'Showstopper').length;
+  const crit     = issues.filter(i => i.priority === 'Critical').length;
+  const maj      = issues.filter(i => i.priority === 'Major').length;
+  const staleWarn = issues.filter(i => ageD(i.updated) >= SLA.staleWarn).length;
+  const staleCrit = issues.filter(i => ageD(i.updated) >= SLA.staleCrit).length;
+  const penalty   = ss * 8 + crit * 2 + staleWarn * 3;
+  const score     = Math.max(0, 100 - penalty);
 
-  // Team breakdown for this subset
+  // Team breakdown
   const byTeam = {};
   issues.forEach(i => { byTeam[i.team] = (byTeam[i.team] || 0) + 1; });
   const teams = Object.entries(byTeam).sort((a, b) => b[1] - a[1]);
@@ -392,26 +621,30 @@ function renderStalledCard(bodyId, issues) {
       ${ring(score, 'Health')}
       <div class="score-info">
         <div class="score-headline ${scoreClass(score)}">${total} Stalled</div>
-        <div class="score-sub">${ss + crit} critical &middot; ${stale90} stale 90d+<br>No update in 30+ days</div>
+        <div class="score-sub">${ss + crit} critical &middot; ${staleWarn} stale ${SLA.staleWarn}d+<br>No update in ${SLA.stallDays}+ days</div>
       </div>
     </div>
     <hr class="div">
     <div class="stat-grid">
       ${stat(ss + crit, 'Critical+',  ss + crit > 10 ? 'c-red'    : ss + crit > 0 ? 'c-orange' : 'c-green')}
-      ${stat(stale90,   'Stale 90d+', stale90 > 3    ? 'c-orange' : stale90 > 0   ? 'c-yellow' : 'c-green')}
+      ${stat(staleWarn, `Stale ${SLA.staleWarn}d+`, staleWarn > 3  ? 'c-orange' : staleWarn > 0   ? 'c-yellow' : 'c-green')}
       ${stat(maj,       'Major',      '')}
-      ${stat(stale180,  'Stale 180d+',stale180 > 0   ? 'c-red'    : 'c-green')}
+      ${stat(staleCrit, `Stale ${SLA.staleCrit}d+`, staleCrit > 0  ? 'c-red'    : 'c-green')}
     </div>
     ${teamBars ? `<div class="bars">${teamBars}</div>` : ''}`;
 }
 
-// ─── Boot ─────────────────────────────────────────────────────────────────────
+// ─── Boot & Refresh ───────────────────────────────────────────────────────────
 
-Promise.all([
-  loadEscalation().catch(e => { console.error(e); ['cloud-esc-body','onprem-esc-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
-  loadPI().catch(e => { console.error(e); ['cloud-pi-body','onprem-pi-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
-  loadStalled().catch(e => { console.error(e); ['cloud-stall-body','onprem-stall-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
-]);
+function refresh() {
+  Promise.all([
+    loadEscalation().catch(e => { console.error(e); ['cloud-esc-body','onprem-esc-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
+    loadPI().catch(e => { console.error(e); ['cloud-pi-body','onprem-pi-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
+    loadStalled().catch(e => { console.error(e); ['cloud-stall-body','onprem-stall-body'].forEach(id => { document.getElementById(id).innerHTML = '<div class="loading">Failed to load</div>'; }); }),
+  ]);
+}
+
+refresh();
 </script>
 </body>
 </html>
