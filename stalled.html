@@ -3302,9 +3302,13 @@ function render() {
     </div>
   `;
 
-  // Team sections
+  // Team sections — use TEAMS order for on-prem, dynamic for cloud
+  const activeTeams = PRODUCT_PARAM === 'cloud'
+    ? [...new Set(filtered.map(i => i.team).filter(Boolean))]
+        .sort((a, b) => filtered.filter(x => x.team === b).length - filtered.filter(x => x.team === a).length)
+    : TEAMS;
   let sectionsHtml = '';
-  for (const team of TEAMS) {
+  for (const team of activeTeams) {
     const teamIssues = filtered.filter(i => i.team === team)
       .sort((a, b) => staleDays(b) - staleDays(a));
 
@@ -3315,7 +3319,7 @@ function render() {
       return d >= threshold * 2 && d < threshold * 3;
     }).length;
     const badgeClass = critCount > 0 ? 'badge-red' : highCount > 0 ? 'badge-orange' : stalledCount > 0 ? 'badge-yellow' : 'badge-green';
-    const teamColor = TEAM_COLORS[team];
+    const teamColor = TEAM_COLORS[team] || 'var(--accent)';
 
     let rows = '';
     for (const iss of teamIssues) {
