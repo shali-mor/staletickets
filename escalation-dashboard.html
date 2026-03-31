@@ -1924,36 +1924,43 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeInsight
 
 function render() {
   const filters = getFilters();
+  const filtersAllStatus = {...filters, st: 'all'}; // stats/charts ignore status filter
   const cProj = projectFilter.cloud;
   const oProj = projectFilter.onprem;
+
+  // Stats + charts: time/severity filtered, status-agnostic (show full open+closed picture)
+  const cDataAll = filterData(cloudData,  filtersAllStatus).filter(t => cProj === 'all' || t.project === cProj);
+  const oDataAll = filterData(onpremData, filtersAllStatus).filter(t => oProj === 'all' || t.project === oProj);
+
+  // Table: full filter including status (so Open/Resolved toggle works on the list)
   const cData = filterData(cloudData,  filters).filter(t => cProj === 'all' || t.project === cProj);
   const oData = filterData(onpremData, filters).filter(t => oProj === 'all' || t.project === oProj);
 
-  lastData.cloud  = cData;
-  lastData.onprem = oData;
+  lastData.cloud  = cDataAll;
+  lastData.onprem = oDataAll;
 
-  renderStats(cData, 'cloud');
-  renderRVRChart(cData, 'cloudRVR');
-  renderSlaChart(cData, 'cloudSLA');
-  renderChart(cData, 'cloud');
-  renderResolutionPanel(cData, 'cloud');
+  renderStats(cDataAll, 'cloud');
+  renderRVRChart(cDataAll, 'cloudRVR');
+  renderSlaChart(cDataAll, 'cloudSLA');
+  renderChart(cDataAll, 'cloud');
+  renderResolutionPanel(cDataAll, 'cloud');
   renderTable(cData, 'cloud');
 
-  renderStats(oData, 'onprem');
-  renderRVRChart(oData, 'onpremRVR');
-  renderSlaChart(oData, 'onpremSLA');
-  renderChart(oData, 'onprem');
-  renderResolutionPanel(oData, 'onprem');
+  renderStats(oDataAll, 'onprem');
+  renderRVRChart(oDataAll, 'onpremRVR');
+  renderSlaChart(oDataAll, 'onpremSLA');
+  renderChart(oDataAll, 'onprem');
+  renderResolutionPanel(oDataAll, 'onprem');
   renderTable(oData, 'onprem');
 
-  // Update tab badges
-  const cOpen = cData.filter(t => isOpenStatus(t.status)).length;
-  const oOpen = oData.filter(t => isOpenStatus(t.status)).length;
-  document.getElementById('cloudBadge').textContent = `(${cData.length} total, ${cOpen} open)`;
-  document.getElementById('onpremBadge').textContent = `(${oData.length} total, ${oOpen} open)`;
+  // Update tab badges (show all-status totals)
+  const cOpen = cDataAll.filter(t => isOpenStatus(t.status)).length;
+  const oOpen = oDataAll.filter(t => isOpenStatus(t.status)).length;
+  document.getElementById('cloudBadge').textContent = `(${cDataAll.length} total, ${cOpen} open)`;
+  document.getElementById('onpremBadge').textContent = `(${oDataAll.length} total, ${oOpen} open)`;
 
   // Update score banner for the active tab
-  const bannerData  = activeTab === 'onprem' ? oData : cData;
+  const bannerData  = activeTab === 'onprem' ? oDataAll : cDataAll;
   const bannerProj  = projectFilter[activeTab === 'onprem' ? 'onprem' : 'cloud'];
   const bannerLabel = (activeTab === 'onprem' ? 'DLP OnPrem' : 'DLP Cloud') +
                       (bannerProj !== 'all' ? ` · ${bannerProj}` : '');
